@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <title>USER</title>
+  <link rel="stylesheet" href="css/user-style.css">
+
+</head>
+
+<body>
+  <h1>WELCOME To <span id="username"></span> (<span id="role"></span>)</h1>
+  <h1>เข้ามาทำไม</h1>
+  <img src="https://pbs.twimg.com/media/EUS6iFEUUAAA1yy.jpg" alt="">
+
+  <button id="logoutBtn">Logout</button>
+
+  <script>
+    // ตรวจสอบ session
+    fetch("/api/check-session")
+      .then(r => r.json())
+      .then(data => {
+        if (!data.user) window.location.href = "/"; // ยังไม่ได้ login → redirect
+        else {
+          document.getElementById("username").textContent = data.user.username;
+          document.getElementById("role").textContent = data.user.role; // แสดง role
+        }
+
+      });
+
+    // Logout
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await fetch("/api/logout");
+      window.location.href = "/";
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login / Register System</title>
+    <script src="https://accounts.google.com/gsi/client" async defer data-locale="en"></script>
+    <link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+    <div class="container">
+        <div class="tab-log">
+            <div class="tab tab-active" onclick="showForm('login', this)">Login</div>
+            <div class="tab" onclick="showForm('register', this)">Register</div>
+        </div>
+
+
+        <!-- Login Form -->
+        <form id="loginForm" class="form">
+            <h2>Login</h2>
+            <input type="text" id="loginName" placeholder="Username" required>
+            <input type="password" id="loginPass" placeholder="Password" required>
+            <button type="submit">Login</button>
+            <p id="login_status"></p>
+        </form>
+
+        <!-- Register Form -->
+        <form id="registerForm" class="form" style="display:none;">
+            <h2>Register</h2>
+            <input type="text" id="regName" placeholder="Username" required>
+            <input type="password" id="regPass" placeholder="Password" required>
+            <input type="password" id="regPass2" placeholder="Confirm Password" required>
+            <button type="submit">Register</button>
+            <p id="register_status"></p>
+        </form>
+
+        <div class="google-login">
+            <h3>Or login with Google</h3>
+            <div id="g_id_onload"
+                data-client_id="1039321023444-s67vvem077s3ihcfgcvavdl7rhbhg7nn.apps.googleusercontent.com"
+                data-callback="handleGoogleLogin"></div>
+            <div class="g_id_signin"></div>
+            <p id="google_status"></p>
+        </div>
+    </div>
+
+    <script>
+        function showLoading(target) {
+            target.innerHTML = `<span class="loader transition"></span> Loading...`;
+            target.style.color = "#555";
+        }
+        // 🔹 Switch tab
+        function showForm(form, element) {
+            const registerForm = document.getElementById("registerForm");
+            const loginForm = document.getElementById("loginForm");
+
+            if (form === 'register') {
+                registerForm.style.display = 'block';
+                loginForm.style.display = 'none';
+            } else {
+                registerForm.style.display = 'none';
+                loginForm.style.display = 'block';
+            }
+
+            const tabs = document.querySelectorAll('.tab-log .tab');
+            tabs.forEach(tab => tab.classList.remove('tab-active'));
+            element.classList.add('tab-active');
+        }
+
+        // 🔹 Register
+        document.getElementById("registerForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const usernameInput = document.getElementById("regName");
+            const passwordInput = document.getElementById("regPass");
+            const confirmPasswordInput = document.getElementById("regPass2");
+            const status = document.getElementById("register_status");
+
+            const username = usernameInput.value;
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            status.textContent = "";
+            showLoading(status);
+
+            try {
+                const res = await fetch("/api/register", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, password, confirmPassword }),
+                });
+
+                const data = await res.json();
+
+                if (data.message) {
+                    status.textContent = "✅ " + data.message;
+                    status.style.color = "green";
+
+                    usernameInput.value = "";
+                    passwordInput.value = "";
+                    confirmPasswordInput.value = "";
+                    
+
+                    setTimeout(() => {
+                        const loginTab = document.querySelector(".tab-log .tab:nth-child(1)");
+                        showForm("login", loginTab);
+                        status.textContent = "";
+                    }, 1500);
+                } else {
+                    status.textContent = "❌ " + data.error;
+                    status.style.color = "red";
+                    passwordInput.value = "";
+                    confirmPasswordInput.value = "";
+                }
+            } catch (err) {
+                console.error(err);
+                status.textContent = "❌ Internal server error";
+                status.style.color = "red";
+            }
+        });
+
+        // 🔹 Login
+        document.getElementById("loginForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const usernameInput = document.getElementById("loginName");
+            const passwordInput = document.getElementById("loginPass");
+            const status = document.getElementById("login_status");
+
+            const username = usernameInput.value;
+            const password = passwordInput.value;
+
+            status.textContent = "";
+            showLoading(status);
+
+            try {
+                const res = await fetch("/api/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, password }),
+                    credentials: "include"
+                });
+
+                const data = await res.json();
+
+                if (data.user) {
+                    status.textContent = "✅ Login successful!";
+                    status.style.color = "green";
+
+                    usernameInput.value = "";
+                    passwordInput.value = "";
+
+                    setTimeout(() => {
+                        window.location.href = "/main.html";
+                    }, 1000);
+                } else {
+                    status.textContent = "❌ " + data.error;
+                    status.style.color = "red";
+                    passwordInput.value = "";
+                }
+            } catch (err) {
+                console.error(err);
+                status.textContent = "❌ Internal server error";
+                status.style.color = "red";
+            }
+        });
+
+        // 🔹 Google Login
+        async function handleGoogleLogin(response) {
+            const status = document.getElementById("google_status");
+            status.textContent = "";
+            showLoading(status);
+
+            if (!response.credential) {
+                status.textContent = "❌ No credential received from Google";
+                return;
+            }
+
+            try {
+                const res = await fetch("/api/google-login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ credential: response.credential }),
+                    credentials: "include"
+                });
+
+                const data = await res.json();
+
+                if (data.user) {
+                    status.textContent = "✅ Login successful!";
+                    status.style.color = "green";
+
+                    setTimeout(() => {
+                        window.location.href = "/main.html";
+                    }, 1000);
+                } else {
+                    status.textContent = "❌ " + data.error;
+                    status.style.color = "red";
+                }
+            } catch (err) {
+                console.error(err);
+                status.textContent = "❌ Internal server error";
+                status.style.color = "red";
+            }
+        }
+    </script>
+
+</body>
+
+</html>
