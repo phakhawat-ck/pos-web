@@ -8,21 +8,68 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String?  @unique
-  email     String?
+  id        Int        @id @default(autoincrement())
+  username  String?    @unique
+  email     String?    @unique
   password  String?
-  googleId  String?  @unique @map("google_id")
-  role      String   @default("user")
-  createdAt DateTime @default(now()) @map("created_at")
+  googleId  String?    @unique @map("google_id")
+  role      String     @default("user")
+  createdAt DateTime   @default(now()) @map("created_at")
+  name      String?
+  orders    Order[]
+  address   Address?   @relation("UserAddress")
+  cartItems CartItem[] 
+}
+
+model Address {
+  address_id   Int    @id @default(autoincrement())
+  user         User   @relation("UserAddress", fields: [user_id], references: [id])
+  user_id      Int    @unique
+  house_number String
+  street       String
+  city         String
+  province     String
+  zipCode      String
+  phone        String
 }
 
 model Shirt {
-  id          Int      @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   shirt_name  String
   shirt_size  String
   shirt_price Float
   shirt_image String?
   shirt_color String[]
+  orderItems  OrderItem[]
+  cartItems   CartItem[] // <-- เพิ่มตรงนี้
 }
 
+model CartItem {
+  id       Int    @id @default(autoincrement())
+  userId   Int
+  shirtId  Int
+  size     String
+  quantity Int    @default(1)
+  user     User   @relation(fields: [userId], references: [id])
+  shirt    Shirt  @relation(fields: [shirtId], references: [id])
+}
+
+model Order {
+  id        Int         @id @default(autoincrement())
+  userId    Int
+  status    String      @default("pending")
+  createdAt DateTime    @default(now())
+  user      User        @relation(fields: [userId], references: [id])
+  items     OrderItem[]
+}
+
+model OrderItem {
+  id       Int    @id @default(autoincrement())
+  orderId  Int
+  shirtId  Int
+  size     String
+  price    Float
+  quantity Int    @default(1)
+  order    Order  @relation(fields: [orderId], references: [id])
+  shirt    Shirt  @relation(fields: [shirtId], references: [id])
+}

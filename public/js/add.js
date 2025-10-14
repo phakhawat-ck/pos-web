@@ -3,12 +3,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const addShirtDiv = document.getElementById("addShirtDiv");
 
     const colorsContainer = document.getElementById("colorsContainer");
-    document.getElementById("addColorBtn").addEventListener("click", () => {
-        const input = document.createElement("input");
-        input.type = "color";
-        input.className = "shirtColor";
-        colorsContainer.appendChild(input);
-    });
+    // document.getElementById("addColorBtn").addEventListener("click", () => {
+    //     const input = document.createElement("input");
+    //     input.type = "color";
+    //     input.className = "shirtColor";
+    //     colorsContainer.appendChild(input);
+    // });
 
 
     fetch("/api/check-session", {
@@ -29,13 +29,9 @@ document.addEventListener("DOMContentLoaded", () => {
     addShirtForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        // ✅ รวมทุกสีจาก input
-        const shirt_colors = Array.from(document.querySelectorAll(".shirtColor")).map(i => i.value);
-
         const newShirt = {
             shirt_name: document.getElementById("shirtName").value,
             shirt_size: document.getElementById("shirtSize").value,
-            shirt_color: shirt_colors,
             shirt_price: parseFloat(document.getElementById("shirtPrice").value),
             shirt_image: document.getElementById("shirtImage").value || null
         };
@@ -44,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const res = await fetch("/api/shirts", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                credentials: "include", // ✅ ต้องใส่ด้วยเพื่อส่ง token
+                credentials: "include", 
                 body: JSON.stringify(newShirt)
             });
 
@@ -58,7 +54,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             alert("Shirt added successfully!");
             addShirtForm.reset();
-            colorsContainer.innerHTML = '<input type="color" class="shirtColor">'; // reset สี input
 
             if (typeof loadShirts === "function") loadShirts();
         } catch (err) {

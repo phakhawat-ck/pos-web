@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&family=Outfit:wght@100..900&display=swap');
+
+*{
+    font-family: 'Outfit', 'Noto Sans Thai', sans-serif;
+}
+
+/* ปุ่มลบในตะกร้า */
+.remove-btn {
+  
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.remove-btn:hover {
+  transform: scale(1.25);
+}
+
+.remove-btn:active {
+  transform: scale(0.95);
+}

@@ -67,6 +67,9 @@ app.post("/api/register", async (req, res) => {
   res.json({ message: "Registration successful!" });
 });
 
+
+
+
 // Login
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
@@ -93,7 +96,7 @@ app.post("/api/google-login", async (req, res) => {
 
     let user = await prisma.user.findUnique({ where: { googleId } });
     if (!user) {
-      user = await prisma.user.create({ data: { username: name, email, googleId, role: "user" } });
+      user = await prisma.user.create({ data: { name: name, email, googleId, role: "user" } });
     }
 
     const token = createToken(user);
@@ -108,13 +111,23 @@ app.post("/api/google-login", async (req, res) => {
 app.get("/api/check-session", (req, res) => {
   const token = req.cookies.token;
   if (!token) return res.json({ user: null });
+
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    res.json({ user: decoded });
+
+    // query DB เพื่อดึง name ให้แน่ใจ
+    prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: { id: true, username: true, name: true, role: true }
+    }).then(user => {
+      res.json({ user });
+    });
+
   } catch {
     res.json({ user: null });
   }
 });
+
 
 // Logout
 app.post("/api/logout", (req, res) => {
@@ -126,6 +139,72 @@ app.post("/api/logout", (req, res) => {
 app.get("/main.html", verifyToken, (req, res) => {
   res.sendFile(path.join(process.cwd(), "public/main.html"));
 });
+
+
+// ---------- Address Routes ----------
+app.get("/api/address", verifyToken, async (req, res) => {
+  try {
+    const address = await prisma.address.findUnique({
+      where: { user_id: req.user.id },
+    });
+    res.json(address || null);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.put("/api/address", verifyToken, async (req, res) => {
+  const { house_number, street, city, province, zipCode, phone } = req.body;
+
+  if (!house_number || !street || !city || !province || !zipCode || !phone) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  try {
+    // ตรวจสอบว่าผู้ใช้มีอยู่จริง
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id }
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+
+    // ตรวจว่าผู้ใช้มี address หรือยัง
+    const existing = await prisma.address.findUnique({
+      where: { user_id: req.user.id },
+    });
+
+    let address;
+    if (existing) {
+      // update
+      address = await prisma.address.update({
+        where: { user_id: req.user.id },
+        data: { house_number, street, city, province, zipCode, phone },
+      });
+    } else {
+      // create ใหม่
+      address = await prisma.address.create({
+        data: { user_id: req.user.id, house_number, street, city, province, zipCode, phone },
+      });
+    }
+
+    res.json(address);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
+
+
+
+
+
+
+
 
 // Shirts
 app.get("/api/shirts", async (req, res) => {
@@ -147,6 +226,148 @@ app.post("/api/shirts", verifyToken, async (req, res) => {
   res.json(newShirt);
 });
 
+
+
+app.post("/api/add-to-cart", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { shirtId, size, price } = req.body;
+
+    if (!shirtId || !size || !price) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // หา order pending ของ user
+    let order = await prisma.order.findFirst({
+      where: { userId, status: "pending" },
+      include: { items: { include: { shirt: true } } }, // ดึง shirt ด้วย
+    });
+
+    if (!order) {
+      // สร้าง order ใหม่
+      order = await prisma.order.create({
+        data: { userId, status: "pending" },
+        include: { items: { include: { shirt: true } } },
+      });
+    }
+
+    // เพิ่ม item ลง order
+    await prisma.orderItem.create({
+      data: {
+        orderId: order.id,
+        shirtId,
+        size,
+        price,
+        quantity: 1,
+      },
+    });
+
+    // 🔹 ดึง order item ล่าสุดทั้งหมด
+    const updatedOrder = await prisma.order.findUnique({
+      where: { id: order.id },
+      include: { items: { include: { shirt: true } } },
+    });
+
+    // ส่งกลับ items สำหรับ frontend
+    res.json({
+      message: "Added to cart",
+      items: updatedOrder.items.map(i => ({
+        id: i.id,
+        shirtName: i.shirt.shirt_name,
+        size: i.size,
+        price: i.price,
+        quantity: i.quantity,
+      })),
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
+
+
+app.get("/api/cart", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // หา order ที่ status = "pending"
+    const order = await prisma.order.findFirst({
+      where: { userId, status: "pending" },
+      include: {
+        items: {
+          include: { shirt: true } // join กับ shirt เพื่อเอาชื่อ, price
+        }
+      }
+    });
+
+    if (!order) return res.json({ items: [] });
+
+    res.json({ items: order.items });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.delete("/api/cart/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (!id) return res.status(400).json({ error: "Missing id" });
+
+  try {
+    const deleted = await prisma.orderItem.deleteMany({
+      where: { id },
+    });
+    if (deleted.count === 0) {
+      return res.status(404).json({ error: "ไม่พบสินค้าในตะกร้า" });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Backend error:", err);
+    res.status(500).json({ error: "ไม่สามารถลบสินค้าได้" });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 app.listen(process.env.PORT || 3000, () =>
   console.log(`✅ Server running on port ${process.env.PORT || 3000}`)
 );
+
+
+
+
+
+
+
+
