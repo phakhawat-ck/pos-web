@@ -16,21 +16,21 @@ model User {
   role      String     @default("user")
   createdAt DateTime   @default(now()) @map("created_at")
   name      String?
-  orders    Order[]
   address   Address?   @relation("UserAddress")
-  cartItems CartItem[] 
+  cartItems CartItem[]
+  orders    Order[]
 }
 
 model Address {
   address_id   Int    @id @default(autoincrement())
-  user         User   @relation("UserAddress", fields: [user_id], references: [id])
   user_id      Int    @unique
-  house_number String
-  street       String
   city         String
+  street       String
   province     String
-  zipCode      String
   phone        String
+  house_number String
+  zipCode      String
+  user         User   @relation("UserAddress", fields: [user_id], references: [id])
 }
 
 model Shirt {
@@ -40,8 +40,8 @@ model Shirt {
   shirt_price Float
   shirt_image String?
   shirt_color String[]
+  cartItems   CartItem[]
   orderItems  OrderItem[]
-  cartItems   CartItem[] // <-- เพิ่มตรงนี้
 }
 
 model CartItem {
@@ -50,8 +50,8 @@ model CartItem {
   shirtId  Int
   size     String
   quantity Int    @default(1)
-  user     User   @relation(fields: [userId], references: [id])
   shirt    Shirt  @relation(fields: [shirtId], references: [id])
+  user     User   @relation(fields: [userId], references: [id])
 }
 
 model Order {

@@ -217,7 +217,7 @@ app.post("/api/shirts", verifyToken, async (req, res) => {
   if (user.role !== "admin") return res.status(403).json({ error: "Forbidden: admin only" });
 
   const { shirt_name, shirt_size, shirt_color, shirt_price, shirt_image } = req.body;
-  if (!shirt_name || !shirt_size || !shirt_price || !Array.isArray(shirt_color) || shirt_color.length === 0)
+  if (!shirt_name || !shirt_size || !shirt_price )
     return res.status(400).json({ error: "Missing required fields" });
 
   const newShirt = await prisma.shirt.create({

@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
 
         const phone = document.getElementById("phoneInput").value.trim();
-        const phoneRegex = /^\+?\d{1,10}$/;
+        const phoneRegex = /^(0\d{9}|\+66\d{9})$/;
 
         if (!phoneRegex.test(phone)) {
             statusEl.textContent = "Please enter a valid phone number (numbers + up to 10 digits)";
