@@ -316,18 +316,29 @@ app.delete("/api/cart/:id", async (req, res) => {
   if (!id) return res.status(400).json({ error: "Missing id" });
 
   try {
+    // 🔹 ลบสินค้า
     const deleted = await prisma.orderItem.deleteMany({
       where: { id },
     });
     if (deleted.count === 0) {
       return res.status(404).json({ error: "ไม่พบสินค้าในตะกร้า" });
     }
-    res.json({ success: true });
+
+    // 🔹 ดึง cart ปัจจุบันของ user นี้
+    const userId = req.userId; // <== ถ้ามี decode JWT แล้วเก็บ userId
+    const items = await prisma.orderItem.findMany({
+      where: { userId },
+      include: { shirt: true },
+    });
+
+    // 🔹 ส่งกลับ items ให้ frontend อัปเดต UI
+    res.json({ success: true, items });
   } catch (err) {
     console.error("Backend error:", err);
     res.status(500).json({ error: "ไม่สามารถลบสินค้าได้" });
   }
 });
+
 
 
 

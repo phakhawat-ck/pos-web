@@ -142,7 +142,7 @@
                 <button id="cartBtn"
                     class="w-10 h-10 border-[#E6E6E6] border-[1px] rounded-full flex items-center justify-center hover:bg-gray-200 transition relative">
                     <i class="fa-solid fa-cart-shopping"></i>
-                    <span id="cartCount"
+                    <span id="cartDropdownCount"
                         class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full">0</span>
                 </button>
 
@@ -161,11 +161,11 @@
     <div id="cartDropdown"
         class="fixed top-16 right-4 w-80 bg-white border border-gray-200 rounded-xl shadow-lg opacity-0 pointer-events-none transition-all duration-200 z-50">
         <h3 class="px-4 py-2 font-semibold border-b border-gray-200">
-            ตะกร้าสินค้า ( <span id="cartDropdownCount">0</span> )
+            ตะกร้าสินค้า ( <span id="cartCount"> 0 </span> )
         </h3>
         <div id="cartDropdownItems" class="max-h-64 overflow-y-auto p-2 space-y-2"></div>
         <div class="px-4 py-2 border-t border-gray-200 flex justify-between items-center">
-            <span class="font-semibold">Total: $<span id="cartDropdownTotal">0</span></span>
+            <span class="font-semibold">Total: $<span id="cartDropdownTotal"> 0 </span></span>
             <button id="checkoutBtn"
                 class="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-500 transition">Checkout</button>
         </div>
