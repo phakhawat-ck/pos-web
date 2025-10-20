@@ -22,15 +22,16 @@ model User {
 }
 
 model Address {
-  address_id   Int    @id @default(autoincrement())
-  user_id      Int    @unique
+  address_id   Int     @id @default(autoincrement())
+  user_id      Int     @unique
   city         String
   street       String
   province     String
   phone        String
   house_number String
   zipCode      String
-  user         User   @relation("UserAddress", fields: [user_id], references: [id])
+  fullName     String?
+  user         User    @relation("UserAddress", fields: [user_id], references: [id])
 }
 
 model Shirt {

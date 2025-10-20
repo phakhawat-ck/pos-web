@@ -41,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (res.ok) {
                 const address = await res.json();
                 if (address) {
+                    document.getElementById("nameInput").value = address.fullName || "";
                     document.getElementById("houseNumberInput").value = address.house_number || "";
                     document.getElementById("provinceInput").value = address.province || "";
                     document.getElementById("cityInput").value = address.city || "";
@@ -105,6 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const data = {
+            fullName: document.getElementById("nameInput").value.trim(),
             house_number: document.getElementById("houseNumberInput").value.trim(),
             street: document.getElementById("streetInput").value.trim(),
             city: document.getElementById("cityInput").value.trim(),

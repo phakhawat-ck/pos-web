@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="bg-gray-100 text-gray-800">
+
+  <div class="max-w-4xl mx-auto py-12 px-6">
+    <h1 class="text-3xl font-bold mb-8 text-center text-indigo-700">Confirm Your Order</h1>
+
+    <!-- Cart Items -->
+    <section class="bg-white p-6 rounded-xl shadow mb-8">
+      <h2 class="text-xl font-semibold mb-4 border-b pb-2">Cart Items</h2>
+      <div id="cartDropdownItems" class="space-y-4 max-h-64 overflow-y-auto pr-2">
+        <!-- Items will be inserted here by JS -->
+      </div>
+    </section>
+
+    <!-- Total -->
+    <section class="bg-white p-6 rounded-xl shadow mb-8">
+      <div class="flex justify-between items-center text-lg font-semibold">
+        <span>Total:</span>
+        <span class="text-indigo-600 text-xl">฿<span id="checkoutTotal">0.00</span></span>
+      </div>
+    </section>
+
+    <!-- Shipping Address -->
+    <section class="bg-white p-6 rounded-xl shadow mb-8">
+      <h2 class="text-xl font-semibold mb-4 border-b pb-2">Shipping Address</h2>
+      <div id="addressContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
+        <p><strong>Name:</strong> <span id="fullName">-</span></p>
+        <p><strong>House Number:</strong> <span id="houseNumber">-</span></p>
+        <p><strong>Street:</strong> <span id="street">-</span></p>
+        <p><strong>City/District:</strong> <span id="city">-</span></p>
+        <p><strong>Province:</strong> <span id="province">-</span></p>
+        <p><strong>Zip Code:</strong> <span id="zipCode">-</span></p>
+        <p><strong>Phone:</strong> <span id="phone">-</span></p>
+      </div>
+    </section>
+
+    <!-- Confirm Button -->
+    <div class="text-right">
+      <button id="placeOrderBtn"
+        class="bg-indigo-600 text-white text-lg px-8 py-3 rounded-xl hover:bg-indigo-500 transition duration-200 shadow-md">
+        Place Order
+      </button>
+    </div>
+  </div>
+
+  <script src="js/checkout.js"></script>
+</body>
+
+</html>

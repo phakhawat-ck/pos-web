@@ -155,14 +155,13 @@ app.get("/api/address", verifyToken, async (req, res) => {
 });
 
 app.put("/api/address", verifyToken, async (req, res) => {
-  const { house_number, street, city, province, zipCode, phone } = req.body;
+  const { fullName, house_number, street, city, province, zipCode, phone } = req.body;
 
-  if (!house_number || !street || !city || !province || !zipCode || !phone) {
+  if (!fullName || !house_number || !street || !city || !province || !zipCode || !phone) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
   try {
-    // ตรวจสอบว่าผู้ใช้มีอยู่จริง
     const user = await prisma.user.findUnique({
       where: { id: req.user.id }
     });
@@ -171,22 +170,19 @@ app.put("/api/address", verifyToken, async (req, res) => {
       return res.status(400).json({ error: "User not found" });
     }
 
-    // ตรวจว่าผู้ใช้มี address หรือยัง
     const existing = await prisma.address.findUnique({
       where: { user_id: req.user.id },
     });
 
     let address;
     if (existing) {
-      // update
       address = await prisma.address.update({
         where: { user_id: req.user.id },
-        data: { house_number, street, city, province, zipCode, phone },
+        data: { fullName, house_number, street, city, province, zipCode, phone },
       });
     } else {
-      // create ใหม่
       address = await prisma.address.create({
-        data: { user_id: req.user.id, house_number, street, city, province, zipCode, phone },
+        data: { user_id: req.user.id, fullName, house_number, street, city, province, zipCode, phone },
       });
     }
 
@@ -196,6 +192,7 @@ app.put("/api/address", verifyToken, async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
 
 
 
@@ -217,7 +214,7 @@ app.post("/api/shirts", verifyToken, async (req, res) => {
   if (user.role !== "admin") return res.status(403).json({ error: "Forbidden: admin only" });
 
   const { shirt_name, shirt_size, shirt_color, shirt_price, shirt_image } = req.body;
-  if (!shirt_name || !shirt_size || !shirt_price )
+  if (!shirt_name || !shirt_size || !shirt_price)
     return res.status(400).json({ error: "Missing required fields" });
 
   const newShirt = await prisma.shirt.create({
