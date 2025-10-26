@@ -6,7 +6,7 @@
 
 | Endpoint             | Method | คำอธิบาย                            | Body (JSON)                                                                              |
 | -------------------- | ------ | --------------------------------- | ---------------------------------------------------------------------------------------- |
-| `/api/register`      | `POST` | ลงทะเบียนผู้ใช้ใหม่                    | `{ "username": "user123", "password": "password123", "confirmPassword": "password123" }` |
+| `/api/register`      | `POST` | ลงทะเบียนผู้ใช้ใหม่                    | `{ "username": "user123", "password":                 "password123", "confirmPassword": "password123" }` |
 | `/api/login`         | `POST` | เข้าสู่ระบบและรับ Token               | `{ "username": "user123", "password": "password123" }`                                   |
 | `/api/google-login`  | `POST` | เข้าสู่ระบบด้วย Google credentials    | `{ "credential": "google-id-token" }`                                                    |
 | `/api/logout`        | `POST` | ออกจากระบบ (ลบ Token)             | *(None)*                                                                                 |
