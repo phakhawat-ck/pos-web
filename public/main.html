@@ -73,7 +73,7 @@
             </h3>
             <div id="cartDropdownItems" class="max-h-64 overflow-y-auto p-2 space-y-2"></div>
             <div class="px-4 py-2 border-t border-gray-200 flex justify-between items-center">
-                <span class="font-semibold">Total: $<span id="cartDropdownTotal"> 0 </span></span>
+                <span class="font-semibold">Total: <span id="cartDropdownTotal"> 0 </span> ฿</span>
                 <button id="checkoutBtn"
                     class="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-500 transition"><a
                         href="checkout.html">Checkout</a></button>
@@ -156,10 +156,32 @@
                         </div>
 
                         <div>
-                            <label for="shirtSize" class="block text-sm font-medium text-gray-700 mb-1">Size</label>
-                            <input type="text" id="shirtSize"
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Size</label>
+
+                            <!-- Checkbox ขนาดมาตรฐาน -->
+                            <div class="flex gap-2 mb-2">
+                                <label class="flex items-center gap-1">
+                                    <input type="checkbox" name="shirtSize" value="S" class="w-4 h-4">
+                                    S
+                                </label>
+                                <label class="flex items-center gap-1">
+                                    <input type="checkbox" name="shirtSize" value="M" class="w-4 h-4">
+                                    M
+                                </label>
+                                <label class="flex items-center gap-1">
+                                    <input type="checkbox" name="shirtSize" value="L" class="w-4 h-4">
+                                    L
+                                </label>
+                                <label class="flex items-center gap-1">
+                                    <input type="checkbox" name="shirtSize" value="XL" class="w-4 h-4">
+                                    XL
+                                </label>
+                            </div>
+
+                            <!-- ช่องกรอกเอง -->
+                            <input type="text" id="shirtSizeCustom"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                                placeholder="Ex.( S,M,L,XL )" required>
+                                placeholder="Ex. 32, Free Size, One Size">
                         </div>
 
                         <div>
@@ -190,6 +212,8 @@
                     </form>
                 </div>
             </div>
+
+            
 
         </section>
 

@@ -230,6 +230,39 @@ app.post("/api/shirts", verifyToken, async (req, res) => {
   res.json(newShirt);
 });
 
+// GET /api/shirts/:id - ดึงเสื้อโดย ID
+app.get("/api/shirts/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (!id) return res.status(400).json({ error: "Missing id" });
+
+    try {
+        const shirt = await prisma.shirt.findUnique({ where: { id } });
+        if (!shirt) return res.status(404).json({ error: "Shirt not found" });
+
+        res.json(shirt);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// PUT /api/shirts/:id - แก้ไขเสื้อโดย ID
+app.put("/api/shirts/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    const { shirt_name, shirt_size, shirt_price, shirt_image } = req.body;
+
+    if (!id) return res.status(400).json({ error: "Missing id" });
+
+    try {
+        const updatedShirt = await prisma.shirt.update({
+            where: { id },
+            data: { shirt_name, shirt_size, shirt_price, shirt_image },
+        });
+        res.json(updatedShirt);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Delete /api/shirts/:id - ลบเสื้อโดย ID
 app.delete("/api/shirts/:id", verifyToken, async (req, res) => {
   const shirtId = parseInt(req.params.id);

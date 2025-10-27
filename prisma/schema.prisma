@@ -41,8 +41,8 @@ model Shirt {
   shirt_price Float
   shirt_image String?
   shirt_color String[]
-  cartItems   CartItem[]
-  orderItems  OrderItem[]
+  cartItems   CartItem[]  
+  orderItems  OrderItem[] 
 }
 
 model CartItem {
@@ -51,7 +51,7 @@ model CartItem {
   shirtId  Int
   size     String
   quantity Int    @default(1)
-  shirt    Shirt  @relation(fields: [shirtId], references: [id])
+  shirt    Shirt  @relation(fields: [shirtId], references: [id], onDelete: Cascade)
   user     User   @relation(fields: [userId], references: [id])
 }
 
@@ -72,5 +72,5 @@ model OrderItem {
   price    Float
   quantity Int    @default(1)
   order    Order  @relation(fields: [orderId], references: [id])
-  shirt    Shirt  @relation(fields: [shirtId], references: [id])
+  shirt    Shirt  @relation(fields: [shirtId], references: [id], onDelete: Cascade)
 }

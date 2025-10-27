@@ -1,3 +1,4 @@
+
 // ====================== SHOP.JS ======================
 
 // รอ DOM โหลดก่อน
@@ -112,38 +113,14 @@ async function loadShirts() {
                 }
             });
 
-            // ----------------- Delete Shirt -----------------
-            const delBtn = card.querySelector(".del-btn");
-            if (delBtn) {
-                delBtn.addEventListener("click", async () => {
-                    try {
-                        const res = await fetch(`/api/shirts/${shirt.id}`, {
-                            method: "DELETE",
-                            credentials: "include",
-                        });
-
-                        const data = await res.json();
-                        if (!res.ok || data.error) throw new Error(data.error || "Failed to delete shirt");
-
-                        alert(`${shirt.shirt_name} ถูกลบจากรายการแล้ว`);
-
-                        // Remove the shirt card from DOM
-                        card.remove();
-
-                    } catch (err) {
-                        console.error(err);
-                        alert(err.message || "ไม่สามารถลบสินค้านี้ได้");
-                    }
-                });
-            }
 
             // ----------------- Edit Shirt -----------------
-            const editBtn = card.querySelector(".edit-btn");
-            if (editBtn) {
-                editBtn.addEventListener("click", () => {
-                    window.location.href = `/admin/edit-shirt/${shirt.id}`; // Redirect to the admin edit page
-                });
-            }
+            // const editBtn = card.querySelector(".edit-btn");
+            // if (editBtn) {
+            //     editBtn.addEventListener("click", () => {
+            //         window.location.href = `/admin/edit-shirt/${shirt.id}`; // Redirect to the admin edit page
+            //     });
+            // }
         });
     } catch (err) {
         console.error("❌ Error loading shirts:", err);
