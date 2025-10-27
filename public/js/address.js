@@ -1,17 +1,21 @@
-
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    // ✅ ทำให้ callback เป็น async เพื่อใช้ await ด้านในได้
     const btn = document.getElementById("profileBtn");
     const menu = document.getElementById("profileMenu");
-    const editBtn = menu.querySelector("button:first-child");
+    const editBtn = menu.querySelector("#editBtn"); 
     const logoutBtn = document.getElementById("logoutBtn");
 
+    // ✅ โหลดไฟล์ modal ก่อน แล้วค่อยจับ element
+    const container = document.getElementById("modalContainer");
+    const res = await fetch("/partials/edit-modal.html");
+    container.innerHTML = await res.text();
+
+    // ✅ ตอนนี้ modal อยู่ใน DOM แล้ว
     const modal = document.getElementById("editModal");
     const backdrop = document.getElementById("backdrop");
     const cancelBtn = document.getElementById("cancelEdit");
     const form = document.getElementById("editAddressForm");
     const statusEl = document.getElementById("modal_status");
-
-
 
     // 🔹 Toggle dropdown menu
     btn.addEventListener("click", (e) => {
@@ -75,14 +79,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // 🔹 ปิด modal (กดยกเลิก หรือคลิกนอกกล่อง)
     const closeModal = () => {
         const box = modal.querySelector(".transform");
-
-        // เริ่ม animation ปิด
         box.classList.replace("scale-100", "scale-95");
         modal.classList.remove("opacity-100");
         modal.classList.add("opacity-0");
         backdrop.classList.remove("opacity-100");
 
-        // หลัง animation 200ms → ปิดการคลิก
         setTimeout(() => {
             modal.classList.add("pointer-events-none");
         }, 200);
@@ -90,7 +91,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     cancelBtn.addEventListener("click", closeModal);
     backdrop.addEventListener("click", closeModal);
-
 
     // 🔹 ส่ง form Address
     form.addEventListener("submit", async (e) => {
@@ -127,11 +127,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 statusEl.textContent = "Address updated successfully!";
                 statusEl.style.color = "green";
 
-                // ปิด modal หลัง 2 วินาที
                 setTimeout(() => {
                     closeModal();
-                    statusEl.textContent = ""; // ล้างข้อความหลังปิด modal
-                }, 2000); // 2000ms = 2 วินาที
+                    statusEl.textContent = "";
+                }, 2000);
             } else {
                 const error = await res.json();
                 statusEl.textContent = "Update failed: " + (error.error || "Unknown error");

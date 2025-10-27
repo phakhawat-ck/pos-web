@@ -6,7 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Checkout</title>
   <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+    integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
 <body class="bg-gray-100 text-gray-800">
@@ -14,9 +17,18 @@
   <div class="max-w-4xl mx-auto py-12 px-6">
     <h1 class="text-3xl font-bold mb-8 text-center text-indigo-700">Confirm Your Order</h1>
 
+    <!-- ปุ่มย้อนกลับ -->
+    <div class="text-left mb-4">
+      <button id="backBtn"
+        class="bg-gray-300 text-gray-800 text-lg px-6 py-2 rounded-xl hover:bg-gray-400 transition duration-200">
+        Back to Main
+      </button>
+    </div>
+
     <!-- Cart Items -->
     <section class="bg-white p-6 rounded-xl shadow mb-8">
-      <h2 class="text-xl font-semibold mb-4 border-b pb-2">Cart Items</h2>
+      <h2 class="text-xl font-semibold mb-4 border-b pb-2">Cart Items </h2>
+
       <div id="cartDropdownItems" class="space-y-4 max-h-64 overflow-y-auto pr-2">
         <!-- Items will be inserted here by JS -->
       </div>
@@ -24,6 +36,10 @@
 
     <!-- Total -->
     <section class="bg-white p-6 rounded-xl shadow mb-8">
+      <div class="flex justify-between items-center text-lg font-semibold">
+        <span>Total Items:</span>
+        <span class="text-indigo-600 text-xl" id="totalItems">0</span>
+      </div>
       <div class="flex justify-between items-center text-lg font-semibold">
         <span>Total:</span>
         <span class="text-indigo-600 text-xl">฿<span id="checkoutTotal">0.00</span></span>

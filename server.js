@@ -2,7 +2,7 @@ import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
-import bodyParser from "body-parser";
+
 import path from "path";
 import cors from "cors";
 import { PrismaClient } from "@prisma/client";
@@ -17,13 +17,17 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
+
+// Middleware
 app.use(cors({
-  origin: ["https://your-frontend.vercel.app", "http://localhost:3000"], // ✅ ปรับให้ตรงโดเมนของคุณ
+  origin: ["https://your-frontend.vercel.app", "http://localhost:3000"],
   credentials: true
 }));
 
+// Parse cookies and JSON bodies
 app.use(cookieParser());
-app.use(bodyParser.json());
+
+app.use(express.json());
 app.use(express.static("public"));
 
 // ---------- Helper ----------
@@ -35,6 +39,7 @@ function createToken(user) {
   );
 }
 
+// Middleware to verify JWT
 function verifyToken(req, res, next) {
   const token = req.cookies.token;
   if (!token) return res.status(401).json({ error: "Unauthorized" });
@@ -50,7 +55,11 @@ function verifyToken(req, res, next) {
 // ---------- Routes ----------
 app.get("/", (req, res) => res.sendFile(path.join(process.cwd(), "public/login.html")));
 
-// Register
+
+
+// Register route
+
+//POST /api/register - ลงทะเบียนผู้ใช้ใหม่
 app.post("/api/register", async (req, res) => {
   const { username, password, confirmPassword } = req.body;
 
@@ -69,8 +78,9 @@ app.post("/api/register", async (req, res) => {
 
 
 
-
 // Login
+
+// POST /api/login - เข้าสู่ระบบ
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
   const user = await prisma.user.findUnique({ where: { username } });
@@ -108,21 +118,15 @@ app.post("/api/google-login", async (req, res) => {
 });
 
 // Check session (JWT version)
+
+// GET /api/check-session - ตรวจสอบ session ของผู้ใช้
 app.get("/api/check-session", (req, res) => {
   const token = req.cookies.token;
   if (!token) return res.json({ user: null });
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-
-    // query DB เพื่อดึง name ให้แน่ใจ
-    prisma.user.findUnique({
-      where: { id: decoded.id },
-      select: { id: true, username: true, name: true, role: true }
-    }).then(user => {
-      res.json({ user });
-    });
-
+    res.json({ user: decoded });
   } catch {
     res.json({ user: null });
   }
@@ -141,7 +145,11 @@ app.get("/main.html", verifyToken, (req, res) => {
 });
 
 
+
+
 // ---------- Address Routes ----------
+
+// GET /api/address - ดึงที่อยู่ของผู้ใช้
 app.get("/api/address", verifyToken, async (req, res) => {
   try {
     const address = await prisma.address.findUnique({
@@ -154,6 +162,8 @@ app.get("/api/address", verifyToken, async (req, res) => {
   }
 });
 
+
+// PUT /api/address - อัปเดตหรือสร้างที่อยู่ของผู้ใช้
 app.put("/api/address", verifyToken, async (req, res) => {
   const { fullName, house_number, street, city, province, zipCode, phone } = req.body;
 
@@ -196,19 +206,16 @@ app.put("/api/address", verifyToken, async (req, res) => {
 
 
 
+// ---------- Shirt Routes ----------
 
-
-
-
-
-
-
-// Shirts
+// GET /api/shirts - ดึงรายการเสื้อทั้งหมด
 app.get("/api/shirts", async (req, res) => {
   const shirts = await prisma.shirt.findMany();
   res.json(shirts);
 });
 
+
+// POST /api/shirts - เพิ่มเสื้อใหม่
 app.post("/api/shirts", verifyToken, async (req, res) => {
   const user = req.user;
   if (user.role !== "admin") return res.status(403).json({ error: "Forbidden: admin only" });
@@ -223,8 +230,35 @@ app.post("/api/shirts", verifyToken, async (req, res) => {
   res.json(newShirt);
 });
 
+// Delete /api/shirts/:id - ลบเสื้อโดย ID
+app.delete("/api/shirts/:id", verifyToken, async (req, res) => {
+  const shirtId = parseInt(req.params.id);
+  if (isNaN(shirtId)) {
+    return res.status(400).json({ error: "Invalid shirt ID" });
+  }
+
+  try {
+    // ตรวจสอบว่าเสื้อที่ต้องการลบมีอยู่ในฐานข้อมูลหรือไม่
+    const shirt = await prisma.shirt.findUnique({ where: { id: shirtId } });
+    if (!shirt) {
+      return res.status(404).json({ error: "Shirt not found" });
+    }
+
+    // ลบเสื้อจากฐานข้อมูล
+    await prisma.shirt.delete({ where: { id: shirtId } });
+
+    // ส่งข้อความยืนยันการลบ
+    res.json({ message: `Shirt with ID ${shirtId} has been deleted` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error, unable to delete shirt" });
+  }
+});
 
 
+// ---------- Cart & Checkout Routes ----------
+
+// POST /api/add-to-cart - เพิ่มสินค้าในตะกร้า
 app.post("/api/add-to-cart", verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -248,16 +282,35 @@ app.post("/api/add-to-cart", verifyToken, async (req, res) => {
       });
     }
 
-    // เพิ่ม item ลง order
-    await prisma.orderItem.create({
-      data: {
+    // 🔹 ตรวจว่ามี item เดิมอยู่ไหม (shirt + size เดียวกันใน order เดียวกัน)
+    const existingItem = await prisma.orderItem.findFirst({
+      where: {
         orderId: order.id,
         shirtId,
         size,
-        price,
-        quantity: 1,
       },
     });
+
+    if (existingItem) {
+      // ถ้ามีอยู่แล้ว → update quantity
+      await prisma.orderItem.update({
+        where: { id: existingItem.id },
+        data: {
+          quantity: existingItem.quantity + 1,
+        },
+      });
+    } else {
+      // ถ้ายังไม่มี → create ใหม่
+      await prisma.orderItem.create({
+        data: {
+          orderId: order.id,
+          shirtId,
+          size,
+          price,
+          quantity: 1,
+        },
+      });
+    }
 
     // 🔹 ดึง order item ล่าสุดทั้งหมด
     const updatedOrder = await prisma.order.findUnique({
@@ -283,8 +336,7 @@ app.post("/api/add-to-cart", verifyToken, async (req, res) => {
 });
 
 
-
-
+// GET /api/cart - ดึงข้อมูลตะกร้าสินค้า
 app.get("/api/cart", verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -308,12 +360,14 @@ app.get("/api/cart", verifyToken, async (req, res) => {
   }
 });
 
+
+// DELETE /api/cart/:id - ลบสินค้าออกจากตะกร้า
 app.delete("/api/cart/:id", async (req, res) => {
   const id = parseInt(req.params.id);
   if (!id) return res.status(400).json({ error: "Missing id" });
 
   try {
-    // 🔹 ลบสินค้า
+    // ลบสินค้า
     const deleted = await prisma.orderItem.deleteMany({
       where: { id },
     });
@@ -321,14 +375,14 @@ app.delete("/api/cart/:id", async (req, res) => {
       return res.status(404).json({ error: "ไม่พบสินค้าในตะกร้า" });
     }
 
-    // 🔹 ดึง cart ปัจจุบันของ user นี้
+    // ดึง cart ปัจจุบันของ user นี้
     const userId = req.userId; // <== ถ้ามี decode JWT แล้วเก็บ userId
     const items = await prisma.orderItem.findMany({
       where: { userId },
       include: { shirt: true },
     });
 
-    // 🔹 ส่งกลับ items ให้ frontend อัปเดต UI
+    // ส่งกลับ items ให้ frontend อัปเดต UI
     res.json({ success: true, items });
   } catch (err) {
     console.error("Backend error:", err);
@@ -341,33 +395,7 @@ app.delete("/api/cart/:id", async (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// Start server
 app.listen(process.env.PORT || 3000, () =>
   console.log(`✅ Server running on port ${process.env.PORT || 3000}`)
 );

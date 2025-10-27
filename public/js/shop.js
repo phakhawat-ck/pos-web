@@ -16,6 +16,12 @@ async function loadShirts() {
         const container = document.getElementById("shirt-container");
         container.innerHTML = "";
 
+        // Fetch user role (admin or not)
+        const sessionRes = await fetch("/api/check-session", { credentials: "include" });
+        const sessionData = await sessionRes.json();
+        const user = sessionData.user;
+        const isAdmin = user && user.role === "admin"; // Assuming the user object has a `role` property
+
         shirts.forEach(shirt => {
             const card = document.createElement("div");
             card.className = "card w-[250px] overflow-hidden flex flex-col m-5 transform hover:scale-110 transition-transform duration-500";
@@ -43,6 +49,13 @@ async function loadShirts() {
           <div class="pr mt-2">
             <p class="text-black/70 font-semibold text-lg">$ ${shirt.shirt_price}</p>
           </div>
+          
+          ${isAdmin ? `
+            <div class="admin-actions flex gap-2 mt-2">
+              <button class="edit-btn bg-yellow-500 text-white rounded-md px-3 py-1" data-id="${shirt.id}">Edit</button>
+              <button class="del-btn bg-red-500 text-white rounded-md px-3 py-1" data-id="${shirt.id}">Delete</button>
+            </div>
+          ` : ""}
         </div>
       `;
 
@@ -93,13 +106,44 @@ async function loadShirts() {
 
                     // Update cart realtime
                     updateCartUI(data.items || []);
-
                 } catch (err) {
                     console.error(err);
                     alert(err.message || "เกิดข้อผิดพลาดในการเพิ่มลงตะกร้า");
                 }
             });
 
+            // ----------------- Delete Shirt -----------------
+            const delBtn = card.querySelector(".del-btn");
+            if (delBtn) {
+                delBtn.addEventListener("click", async () => {
+                    try {
+                        const res = await fetch(`/api/shirts/${shirt.id}`, {
+                            method: "DELETE",
+                            credentials: "include",
+                        });
+
+                        const data = await res.json();
+                        if (!res.ok || data.error) throw new Error(data.error || "Failed to delete shirt");
+
+                        alert(`${shirt.shirt_name} ถูกลบจากรายการแล้ว`);
+
+                        // Remove the shirt card from DOM
+                        card.remove();
+
+                    } catch (err) {
+                        console.error(err);
+                        alert(err.message || "ไม่สามารถลบสินค้านี้ได้");
+                    }
+                });
+            }
+
+            // ----------------- Edit Shirt -----------------
+            const editBtn = card.querySelector(".edit-btn");
+            if (editBtn) {
+                editBtn.addEventListener("click", () => {
+                    window.location.href = `/admin/edit-shirt/${shirt.id}`; // Redirect to the admin edit page
+                });
+            }
         });
     } catch (err) {
         console.error("❌ Error loading shirts:", err);
@@ -108,37 +152,18 @@ async function loadShirts() {
 
 // ---------------------- อัปเดต UI ตะกร้า ----------------------
 function updateCartUI(items) {
-    //   const cartItems = document.getElementById("cartItems");
     const cartCount = document.getElementById("cartCount");
     const cartDropdownItems = document.getElementById("cartDropdownItems");
     const cartDropdownCount = document.getElementById("cartDropdownCount");
     const cartDropdownTotal = document.getElementById("cartDropdownTotal");
+    const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+    
 
-    if (cartDropdownCount) cartDropdownCount.textContent = items.length;
+    if (cartDropdownCount) cartDropdownCount.textContent = totalQuantity;
     const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     if (cartDropdownTotal) cartDropdownTotal.textContent = totalPrice;
 
-    if (cartCount) cartCount.textContent = items.length;
-    //   if (cartItems) {
-    //     cartItems.innerHTML = "";
-    //     if (items.length === 0) cartItems.textContent = "ตะกร้าว่าง";
-    //     else {
-    //       items.forEach(item => {
-    //         const div = document.createElement("div");
-    //         div.className = "cart-item transition transform duration-300 opacity-0 translate-y-2 flex justify-between items-center";
-    //         div.innerHTML = `
-    //           ${item.shirtName || item.shirt?.shirt_name} - Size: ${item.size} x ${item.quantity} - ${item.price}฿
-    //           <button class="remove-btn  ml-2" data-id="${item.id}">ลบ</button>
-    //         `;
-    //         cartItems.appendChild(div);
-    //         requestAnimationFrame(() => {
-    //           div.classList.remove("opacity-0", "translate-y-2");
-    //           div.classList.add("opacity-100", "translate-y-0");
-    //         });
-    //       });
-    //     }
-    //   }
-
+    if (cartCount) cartCount.textContent = totalQuantity;
     if (cartDropdownItems) {
         cartDropdownItems.innerHTML = "";
         if (items.length === 0) {
