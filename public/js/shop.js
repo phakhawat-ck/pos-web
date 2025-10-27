@@ -113,14 +113,6 @@ async function loadShirts() {
                 }
             });
 
-
-            // ----------------- Edit Shirt -----------------
-            // const editBtn = card.querySelector(".edit-btn");
-            // if (editBtn) {
-            //     editBtn.addEventListener("click", () => {
-            //         window.location.href = `/admin/edit-shirt/${shirt.id}`; // Redirect to the admin edit page
-            //     });
-            // }
         });
     } catch (err) {
         console.error("❌ Error loading shirts:", err);
@@ -208,21 +200,3 @@ document.addEventListener("click", async (e) => {
     }
 });
 
-
-// ---------------------- Toggle dropdown ----------------------
-const cartBtn = document.getElementById("cartBtn");
-const cartDropdown = document.getElementById("cartDropdown");
-
-cartBtn.addEventListener("click", (e) => {
-    e.stopPropagation(); // ป้องกัน event bubble ไป document
-    cartDropdown.classList.toggle("opacity-0");
-    cartDropdown.classList.toggle("pointer-events-none");
-});
-
-// ปิด dropdown เมื่อคลิกข้างนอก
-document.addEventListener("click", (e) => {
-    if (!cartDropdown.contains(e.target) && e.target !== cartBtn) {
-        cartDropdown.classList.add("opacity-0");
-        cartDropdown.classList.add("pointer-events-none");
-    }
-});

@@ -1,12 +1,20 @@
-const cartBtn = document.getElementById("cartBtn");
+const cartBtnn = document.getElementById("cartBtn");
 const cartDropdown = document.getElementById("cartDropdown");
 const cartDropdownItems = document.getElementById("cartDropdownItems");
 const cartCount = document.getElementById("cartCount");
 
-// Toggle dropdown
-cartBtn.addEventListener("click", () => {
-  cartDropdown.classList.toggle("opacity-0");
-  cartDropdown.classList.toggle("pointer-events-none");
+cartBtn.addEventListener("click", (e) => {
+    e.stopPropagation(); // ป้องกัน event bubble ไป document
+    cartDropdown.classList.toggle("opacity-0");
+    cartDropdown.classList.toggle("pointer-events-none");
+});
+
+// ปิด dropdown เมื่อคลิกข้างนอก
+document.addEventListener("click", (e) => {
+    if (!cartDropdown.contains(e.target) && e.target !== cartBtn) {
+        cartDropdown.classList.add("opacity-0");
+        cartDropdown.classList.add("pointer-events-none");
+    }
 });
 
 // โหลดตะกร้าจาก backend และ render ทั้ง badge + dropdown

@@ -8,16 +8,15 @@ datasource db {
 }
 
 model User {
-  id        Int        @id @default(autoincrement())
-  username  String?    @unique
-  email     String?    @unique
+  id        Int      @id @default(autoincrement())
+  username  String?  @unique
+  email     String?  @unique
   password  String?
-  googleId  String?    @unique @map("google_id")
-  role      String     @default("user")
-  createdAt DateTime   @default(now()) @map("created_at")
+  googleId  String?  @unique @map("google_id")
+  role      String   @default("user")
+  createdAt DateTime @default(now()) @map("created_at")
   name      String?
-  address   Address?   @relation("UserAddress")
-  cartItems CartItem[]
+  address   Address? @relation("UserAddress")
   orders    Order[]
 }
 
@@ -41,18 +40,7 @@ model Shirt {
   shirt_price Float
   shirt_image String?
   shirt_color String[]
-  cartItems   CartItem[]  
-  orderItems  OrderItem[] 
-}
-
-model CartItem {
-  id       Int    @id @default(autoincrement())
-  userId   Int
-  shirtId  Int
-  size     String
-  quantity Int    @default(1)
-  shirt    Shirt  @relation(fields: [shirtId], references: [id], onDelete: Cascade)
-  user     User   @relation(fields: [userId], references: [id])
+  orderItems  OrderItem[]
 }
 
 model Order {
@@ -72,5 +60,5 @@ model OrderItem {
   price    Float
   quantity Int    @default(1)
   order    Order  @relation(fields: [orderId], references: [id])
-  shirt    Shirt  @relation(fields: [shirtId], references: [id], onDelete: Cascade)
+  shirt    Shirt  @relation(fields: [shirtId], references: [id])
 }

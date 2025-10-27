@@ -103,12 +103,15 @@ placeOrderBtn.addEventListener("click", async () => {
       }
     });
 
+    const data = await res.json(); // อ่าน json ไม่ว่าจะ ok หรือไม่
+
     if (res.ok) {
       alert("สั่งซื้อสำเร็จ! ขอบคุณที่ใช้บริการ");
-      // window.location.href = "/thank-you"; // หรือ redirect ไปหน้าอื่น
+      // ✅ เพิ่มบรรทัดนี้เพื่อรีเฟรชตะกร้า (ให้กลายเป็นว่าง)
+      loadCheckoutData();
     } else {
-      const error = await res.json();
-      alert("เกิดข้อผิดพลาด: " + error.message);
+      // ใช้ data.error (ถ้ามี) หรือ data.message
+      alert("เกิดข้อผิดพลาด: " + (data.error || data.message || "ไม่สามารถสั่งซื้อได้"));
     }
   } catch (err) {
     console.error("เกิดข้อผิดพลาดในการยืนยันการสั่งซื้อ:", err);
@@ -138,6 +141,8 @@ async function loadAddress() {
     document.getElementById("addressContainer").innerHTML = `
       <p class="text-red-500">ไม่สามารถโหลดข้อมูลที่อยู่ได้ กรุณากรอกที่อยู่ก่อน</p>
     `;
+    placeOrderBtn.disabled = true;
+    placeOrderBtn.classList.add("opacity-50", "cursor-not-allowed");
   }
 }
 

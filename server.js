@@ -210,7 +210,9 @@ app.put("/api/address", verifyToken, async (req, res) => {
 
 // GET /api/shirts - ดึงรายการเสื้อทั้งหมด
 app.get("/api/shirts", async (req, res) => {
-  const shirts = await prisma.shirt.findMany();
+  const shirts = await prisma.shirt.findMany({
+    orderBy: { id: "desc" }
+  });
   res.json(shirts);
 });
 
@@ -230,37 +232,39 @@ app.post("/api/shirts", verifyToken, async (req, res) => {
   res.json(newShirt);
 });
 
+
 // GET /api/shirts/:id - ดึงเสื้อโดย ID
 app.get("/api/shirts/:id", async (req, res) => {
-    const id = parseInt(req.params.id);
-    if (!id) return res.status(400).json({ error: "Missing id" });
+  const id = parseInt(req.params.id);
+  if (!id) return res.status(400).json({ error: "Missing id" });
 
-    try {
-        const shirt = await prisma.shirt.findUnique({ where: { id } });
-        if (!shirt) return res.status(404).json({ error: "Shirt not found" });
+  try {
+    const shirt = await prisma.shirt.findUnique({ where: { id } });
+    if (!shirt) return res.status(404).json({ error: "Shirt not found" });
 
-        res.json(shirt);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    res.json(shirt);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
+
 
 // PUT /api/shirts/:id - แก้ไขเสื้อโดย ID
 app.put("/api/shirts/:id", async (req, res) => {
-    const id = parseInt(req.params.id);
-    const { shirt_name, shirt_size, shirt_price, shirt_image } = req.body;
+  const id = parseInt(req.params.id);
+  const { shirt_name, shirt_size, shirt_price, shirt_image } = req.body;
 
-    if (!id) return res.status(400).json({ error: "Missing id" });
+  if (!id) return res.status(400).json({ error: "Missing id" });
 
-    try {
-        const updatedShirt = await prisma.shirt.update({
-            where: { id },
-            data: { shirt_name, shirt_size, shirt_price, shirt_image },
-        });
-        res.json(updatedShirt);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+  try {
+    const updatedShirt = await prisma.shirt.update({
+      where: { id },
+      data: { shirt_name, shirt_size, shirt_price, shirt_image },
+    });
+    res.json(updatedShirt);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Delete /api/shirts/:id - ลบเสื้อโดย ID
@@ -369,6 +373,66 @@ app.post("/api/add-to-cart", verifyToken, async (req, res) => {
 });
 
 
+
+// POST /api/checkout - ยืนยันคำสั่งซื้อและเปลี่ยน status
+app.post("/api/checkout", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // 1. หา Order "pending" ปัจจุบันของ user
+    const pendingOrder = await prisma.order.findFirst({
+      where: { userId, status: "pending" },
+      include: { items: true } // ดึง item มาด้วยเผื่อต้องเช็คว่าตะกร้าว่างไหม
+    });
+
+    // 2. ตรวจสอบว่ามี Order ให้ยืนยันไหม
+    if (!pendingOrder) {
+      return res.status(404).json({ error: "No pending order found to checkout." });
+    }
+
+    // (Optional) ตรวจสอบว่าตะกร้าว่างเปล่าหรือไม่
+    if (pendingOrder.items.length === 0) {
+      return res.status(400).json({ error: "Cannot checkout an empty cart." });
+    }
+
+    // 3. ✅ อัปเดต status จาก "pending" เป็น "success"
+    const successOrder = await prisma.order.update({
+      where: { id: pendingOrder.id },
+      data: {
+        status: "success"
+      }
+    });
+
+    res.json({ message: "Checkout successful!", order: successOrder });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error during checkout." });
+  }
+});
+
+// // GET /api/orders/history - ดึงประวัติการสั่งซื้อที่สำเร็จแล้ว
+// app.get("/api/orders/history", verifyToken, async (req, res) => {
+//   try {
+//     const userId = req.user.id;
+
+//     const orders = await prisma.order.findMany({
+//       where: {
+//         userId,
+//         status: "success" // <-- ดึงเฉพาะอันที่สำเร็จแล้ว
+//       },
+//       include: { items: { include: { shirt: true } } }, // ดึงของใน order มาด้วย
+//       orderBy: { createdAt: 'desc' } // เรียงจากใหม่ไปเก่า
+//     });
+
+//     res.json(orders);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Server error" });
+//   }
+// });
+
+// ---------- Cart Routes ----------
 // GET /api/cart - ดึงข้อมูลตะกร้าสินค้า
 app.get("/api/cart", verifyToken, async (req, res) => {
   try {
@@ -423,9 +487,105 @@ app.delete("/api/cart/:id", async (req, res) => {
   }
 });
 
+// ADMIN DASHBOARD ROUTES
+// GET /api/admin/orders - (สำหรับ Admin) ดึง Order ที่ไม่ใช่ pending ทั้งหมด
+app.get("/api/admin/orders", verifyToken, async (req, res) => {
+  // 1. ตรวจสอบว่าเป็น Admin
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ error: "Forbidden: Admin access only" });
+  }
 
+  try {
+    const orders = await prisma.order.findMany({
+      where: {
+        // 2. ดึงเฉพาะ Order ที่จ่ายเงินแล้ว (ไม่ใช่ "pending")
+        status: {
+          not: "pending"
+        }
+        // คุณอาจจะแก้เป็น status: "success" ถ้าต้องการเฉพาะที่ยังไม่ส่ง
+      },
+      include: {
+        // 3. ดึงข้อมูล user ที่สั่ง และ item+shirt ในออเดอร์
+        user: {
+          select: { id: true, username: true } // เลือกเฉพาะข้อมูล user ที่จำเป็น
+        },
+        items: {
+          include: { shirt: true }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc' // เรียงจากใหม่สุดไปเก่าสุด
+      }
+    });
+    res.json(orders);
+  } catch (err) {
+    console.error("Admin load orders error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
+// PUT /api/admin/orders/:id/status - (สำหรับ Admin) อัปเดตสถานะ Order
+app.put("/api/admin/orders/:id/status", verifyToken, async (req, res) => {
+  // 1. ตรวจสอบว่าเป็น Admin
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ error: "Forbidden: Admin access only" });
+  }
 
+  const orderId = parseInt(req.params.id);
+  const { status } = req.body; // รับ status ใหม่จาก front-end
+
+  if (!status) {
+    return res.status(400).json({ error: "Missing 'status' in body" });
+  }
+
+  try {
+    const updatedOrder = await prisma.order.update({
+      where: { id: orderId },
+      data: { status: status } // เช่น "shipped", "completed", "cancelled"
+    });
+    res.json(updatedOrder);
+  } catch (err) {
+    console.error("Admin update status error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// GET /api/admin/address/:userId - (สำหรับ Admin) ดึงที่อยู่ของ User ID ที่ระบุ
+app.get("/api/admin/address/:userId", verifyToken, async (req, res) => {
+
+  // 1. ตรวจสอบสิทธิ์ Admin
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ error: "Forbidden: Admin access only" });
+  }
+
+  try {
+    // 2. ดึง userId จาก URL (ที่ส่งมาจาก front-end)
+    const userIdToFetch = parseInt(req.params.userId);
+
+    if (isNaN(userIdToFetch)) {
+      return res.status(400).json({ error: "Invalid User ID" });
+    }
+
+    // 3. ค้นหาที่อยู่โดยใช้ userId ที่ได้จาก URL
+    const address = await prisma.address.findFirst({
+      where: {
+        user_id: userIdToFetch  // ⬅️ ใช้ ID จาก param
+      }
+    });
+
+    if (!address) {
+      // ไม่เจอที่อยู่ของ User คนนี้
+      return res.status(404).json({ error: "Address not found for this user" });
+    }
+
+    // 4. ส่งที่อยู่กลับไป
+    res.json(address);
+
+  } catch (err) {
+    console.error("Admin fetch address error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 
 // Start server
