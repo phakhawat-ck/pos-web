@@ -109,7 +109,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await res.json();
         if (!res.ok || data.error) throw new Error(data.error || "Failed to delete shirt");
         alert("สินค้านี้ถูกลบเรียบร้อยแล้ว");
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
         card.remove();
+
       } catch (err) {
         console.error(err);
         alert(err.message || "ไม่สามารถลบสินค้านี้ได้");
