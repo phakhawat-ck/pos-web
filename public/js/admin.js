@@ -340,20 +340,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
         ordersTbody = newTbody;
 
-        ordersTbody.addEventListener("click", (e) => {
+        //           VVVVV
+        ordersTbody.addEventListener("click", async (e) => {
             const viewBtn = e.target.closest(".view-btn");
             if (viewBtn) {
                 const orderData = JSON.parse(viewBtn.dataset.order);
-                showOrderDetailModal(orderData); 
+                showOrderDetailModal(orderData);
                 return;
             }
 
             const shipBtn = e.target.closest(".mark-shipped-btn");
             if (shipBtn) {
                 const orderId = shipBtn.dataset.id;
-                if (confirm(`คุณต้องการยืนยันการจัดส่ง Order #${orderId} หรือไม่?`)) {
+
+                // --- [ นี่คือส่วนที่เปลี่ยน ] ---
+                // 1. เปลี่ยนจาก if(confirm(...)) มาใช้ await Swal.fire(...)
+                const result = await Swal.fire({
+                    title: "ยืนยันการจัดส่ง?",
+                    text: `คุณต้องการยืนยันการจัดส่ง Order #${orderId} หรือไม่?`,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#3085d6",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "ใช่, ยืนยันเลย!",
+                    cancelButtonText: "ยกเลิก"
+                });
+
+                // 2. เช็กผลลัพธ์จาก .isConfirmed
+                if (result.isConfirmed) {
                     markOrderAsShipped(orderId);
                 }
+                // --- [ จบส่วนที่เปลี่ยน ] ---
             }
         });
     }
@@ -424,7 +441,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 throw new Error(err.error || "Update failed");
             }
 
-            alert(`Order #${orderId} ถูกอัปเดตเป็น Shipped!`);
+            showAlert(`Order #${orderId} ถูกอัปเดตเป็น Shipped!`);
 
             const statusCell = document.getElementById(`status-cell-${orderId}`);
             if (statusCell) {
@@ -433,7 +450,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         } catch (err) {
             console.error(err);
-            alert("เกิดข้อผิดพลาด: " + err.message);
+            showAlert("เกิดข้อผิดพลาด: " + err.message);
         }
     }
 

@@ -55,13 +55,12 @@ async function loadCheckoutData() {
     const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
 
     items.forEach(item => {
-      // ... (โค้ดสร้าง div เหมือนเดิม) ...
-       const itemTotal = item.price * item.quantity;
-       total += itemTotal;
+      const itemTotal = item.price * item.quantity;
+      total += itemTotal;
 
-       const div = document.createElement("div");
-       div.className = "flex justify-between items-center p-2 bg-white ";
-       div.innerHTML = `
+      const div = document.createElement("div");
+      div.className = "flex justify-between items-center p-2 bg-white ";
+      div.innerHTML = `
      <div class="flex items-center gap-4 ">
        <span class="text-[20px] font-bold text-indigo-600  text-center">${item.quantity} x </span>
        <div>
@@ -76,7 +75,7 @@ async function loadCheckoutData() {
        </button>
      </div>
    `;
-       cartDropdownItems.appendChild(div);
+      cartDropdownItems.appendChild(div);
     });
 
     // --- 3. อัปเดตยอดรวม ---
@@ -106,14 +105,14 @@ cartDropdownItems.addEventListener("click", async (e) => {
   if (!confirm("คุณต้องการลบสินค้านี้ออกจากตะกร้าหรือไม่?")) return;
 
   try {
-    btn.disabled = true; 
+    btn.disabled = true;
     const res = await fetch(`/api/cart/${id}`, {
       method: "DELETE",
       credentials: "include",
     });
     const result = await res.json();
     if (res.ok) {
-      loadCheckoutData(); 
+      loadCheckoutData();
     } else {
       alert(result.error || "ไม่สามารถลบสินค้าได้");
       btn.disabled = false;
@@ -121,31 +120,61 @@ cartDropdownItems.addEventListener("click", async (e) => {
   } catch (err) {
     console.error("เกิดข้อผิดพลาดในการลบสินค้า:", err);
     alert("ไม่สามารถลบสินค้าได้");
-    btn.disabled = false; 
+    btn.disabled = false;
   }
 });
 
 
 placeOrderBtn.addEventListener("click", async () => {
-  try {
-    const res = await fetch("/api/checkout", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" }
-    });
-    const data = await res.json();
-    if (res.ok) {
-      alert("สั่งซื้อสำเร็จ! ขอบคุณที่ใช้บริการ");
-      loadCheckoutData(); 
-    } else {
-      alert("เกิดข้อผิดพลาด: " + (data.error || data.message || "ไม่สามารถสั่งซื้อได้"));
-    }
-  } catch (err) {
-    console.error("เกิดข้อผิดพลาดในการยืนยันการสั่งซื้อ:", err);
-    alert("ไม่สามารถสั่งซื้อได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง");
-  }
-});
 
+  const result = await Swal.fire({
+    title: "ยืนยันการสั่งซื้อ?",
+    text: "คุณต้องการยืนยันการสั่งซื้อสินค้าทั้งหมดในตะกร้าใช่หรือไม่?",
+    icon: "question", 
+    showCancelButton: true,
+    confirmButtonColor: "#5a67d8",
+    cancelButtonColor: "rgba(233, 28, 28, 0.79)",
+    confirmButtonText: "ยืนยันการสั่งซื้อ",
+    cancelButtonText: "ยกเลิก"
+  });
+
+
+  if (result.isConfirmed) {
+
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" }
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        Swal.fire(
+          'สั่งซื้อสำเร็จ!',
+          'ขอบคุณที่ใช้บริการครับ',
+          'success'
+        );
+        loadCheckoutData();
+      } else {
+        Swal.fire(
+          'เกิดข้อผิดพลาด!',
+          data.error || data.message || "ไม่สามารถสั่งซื้อได้",
+          'error'
+        );
+      }
+    } catch (err) {
+      console.error("เกิดข้อผิดพลาดในการยืนยันการสั่งซื้อ:", err);
+      // [ เปลี่ยน ] : ใช้ Swal.fire สำหรับ "ล้มเหลว (Network)"
+      Swal.fire(
+        'เกิดข้อผิดพลาด!',
+        'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง',
+        'error'
+      );
+    }
+  }
+  
+});
 
 async function loadAddress() {
   try {
@@ -156,7 +185,7 @@ async function loadAddress() {
     }
 
     const data = await res.json();
-    
+
     if (!data || !data.fullName) {
       throw new Error("ผู้ใช้ยังไม่ได้กรอกที่อยู่");
     }
@@ -178,7 +207,7 @@ async function loadAddress() {
       <p class="text-red-500">คุณยังไม่ได้กรอกที่อยู่จัดส่ง</p>
       <a href="/main.html?action=edit_address" class="text-indigo-600 hover:underline">ไปที่หน้าจัดการที่อยู่</a>
     `;
-    
+
     // 🔹 3. อัปเดตสถานะ (ไม่มีที่อยู่)
     hasShippingAddress = false;
   } finally {
@@ -192,8 +221,8 @@ document.getElementById('backBtn').addEventListener('click', function () {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  updatePlaceOrderButtonState(); 
-  
+  updatePlaceOrderButtonState();
+
   // จากนั้นค่อยโหลดข้อมูล
   loadCheckoutData();
   loadAddress();
