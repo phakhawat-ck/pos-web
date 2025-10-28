@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
-    
+
     // ----------------- SECTION 1: รวม Element Selectors -----------------
-    
+
     // ---Elements "Add Shirt" ---
     const addShirtForm = document.getElementById("addShirtForm");
     const openAddShirtBtn = document.getElementById("openAddShirtBtn");
@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const adminOrdersModal = document.getElementById("adminOrdersModal");
     const adminOrdersBackdrop = document.getElementById("adminOrdersBackdrop");
     const closeAdminOrdersBtn = document.getElementById("closeAdminOrdersBtn");
-    const ordersTbody = document.getElementById("orders-table-body");
+    let ordersTbody = document.getElementById("orders-table-body");
 
     // ---Elements "Order Detail" (Modal ซ้อน) ---
     const orderDetailModal = document.getElementById("orderDetailModal");
@@ -24,42 +24,42 @@ document.addEventListener("DOMContentLoaded", () => {
     const closeOrderDetailBtn = document.getElementById("closeOrderDetailBtn");
     const modalDetailTitle = document.getElementById("modalDetailTitle");
     const modalDetailBody = document.getElementById("modalDetailBody");
-    
+
     // (ใช้ Token สำหรับการยืนยันตัวตนทั้งหมด)
     const token = localStorage.getItem('token');
 
-    
+
     // ----------------- SECTION 2: ตรวจ Session (ใช้ Logic ของคุณ) -----------------
-    
+
     fetch("/api/check-session", {
         headers: { 'Authorization': `Bearer ${token}` }
     })
-    .then(r => r.json())
-    .then(data => {
-        if (!data.user) {
-            console.warn("User not logged in.");
-            return; // ไม่ต้อง redirect เพราะนี่คือหน้า main
-        }
-        
-        // อัปเดต UI (จากโค้ดของคุณ)
-        const usernameEl = document.getElementById("username");
-        const roleEl = document.getElementById("role");
-        if (usernameEl) usernameEl.textContent = data.user.username;
-        if (roleEl) roleEl.textContent = data.user.role;
+        .then(r => r.json())
+        .then(data => {
+            if (!data.user) {
+                console.warn("User not logged in.");
+                return; // ไม่ต้อง redirect เพราะนี่คือหน้า main
+            }
 
-        // ถ้ารเป็น Admin: แสดงปุ่ม Admin ทั้งสอง
-        if (data.user.role === "admin") {
-            if(openAddShirtBtn) openAddShirtBtn.classList.remove("hidden");
-            if(openAdminOrdersBtn) openAdminOrdersBtn.classList.remove("hidden");
-        }
-    })
-    .catch(err => {
-        console.error("Error checking session:", err);
-    });
+            // อัปเดต UI (จากโค้ดของคุณ)
+            const usernameEl = document.getElementById("username");
+            const roleEl = document.getElementById("role");
+            if (usernameEl) usernameEl.textContent = data.user.username;
+            if (roleEl) roleEl.textContent = data.user.role;
 
-    
+            // ถ้ารเป็น Admin: แสดงปุ่ม Admin ทั้งสอง
+            if (data.user.role === "admin") {
+                if (openAddShirtBtn) openAddShirtBtn.classList.remove("hidden");
+                if (openAdminOrdersBtn) openAdminOrdersBtn.classList.remove("hidden");
+            }
+        })
+        .catch(err => {
+            console.error("Error checking session:", err);
+        });
+
+
     // ----------------- SECTION 3: Logic Modal "Add Shirt" (ใช้ Logic ของคุณ) -----------------
-    
+
     function openAddShirtModal() {
         if (!addShirtModal) return;
         addShirtModal.classList.remove("opacity-0", "pointer-events-none");
@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // ----------------- SECTION 4: Submit form (Add / Edit Shirt) (ใช้ Logic ของคุณ) -----------------
-    
+
     if (addShirtForm) {
         addShirtForm.addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -113,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 const res = await fetch(url, {
                     method,
-                    headers: { 
+                    headers: {
                         "Content-Type": "application/json",
                         "Authorization": `Bearer ${token}` // ใช้ Token
                     },
@@ -127,10 +127,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 delete addShirtForm.dataset.editId;
                 addShirtForm.querySelector("button[type='submit']").textContent = "Add";
                 closeAddShirtModal();
-                
+
                 // โหลดสินค้าใหม่ (ฟังก์ชันนี้ควรอยู่ใน shop.js)
                 if (typeof loadShirts === "function") {
-                    loadShirts(); 
+                    loadShirts();
                 } else {
                     window.location.reload(); // Fallback
                 }
@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ----------------- SECTION 5: Click Event (Edit / Delete Shirt) (ใช้ Logic ของคุณ) -----------------
-    
+
     if (container) {
         container.addEventListener("click", async (e) => {
             const target = e.target;
@@ -161,9 +161,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     });
                     const data = await res.json();
                     if (!res.ok || data.error) throw new Error(data.error || "Failed to delete shirt");
-                    
+
                     alert("สินค้านี้ถูกลบเรียบร้อยแล้ว");
-                    
+
                     if (typeof loadShirts === "function") {
                         loadShirts(); // โหลดใหม่ดีกว่า reload
                     } else {
@@ -183,13 +183,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 try {
                     const res = await fetch(`/api/shirts/${shirtId}`, {
-                         headers: { "Authorization": `Bearer ${token}` } // ใช้ Token
+                        headers: { "Authorization": `Bearer ${token}` } // ใช้ Token
                     });
                     const shirt = await res.json();
                     if (!res.ok) throw new Error(shirt.error || "Failed to fetch shirt data");
 
                     // เติมข้อมูลลง form
-                    addShirtForm.dataset.editId = shirtId; 
+                    addShirtForm.dataset.editId = shirtId;
                     addShirtForm.querySelector("button[type='submit']").textContent = "Update";
                     addShirtForm.querySelector("#shirtName").value = shirt.shirt_name;
                     addShirtForm.querySelector("#shirtPrice").value = shirt.shirt_price;
@@ -216,7 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             addShirtForm.querySelector("#shirtSizeCustom").value = customSizes.join(", ");
                         }
                     }
-                    
+
                     openAddShirtModal(); // เปิด modal
                 } catch (err) {
                     console.error(err);
@@ -226,30 +226,30 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    
+
     // ----------------- SECTION 6: Logic Modal "Manage Orders" (จากโค้ดของผม) -----------------
-    
+
     const toggleAdminOrdersModal = (show) => {
         if (!adminOrdersModal) return;
         if (show) {
             adminOrdersModal.classList.remove("opacity-0", "pointer-events-none");
             adminOrdersModal.querySelector(".relative.z-10").classList.remove("scale-95");
             adminOrdersBackdrop.classList.remove("opacity-0");
-            loadAdminOrders(); 
+            loadAdminOrders();
         } else {
             adminOrdersModal.classList.add("opacity-0", "pointer-events-none");
             adminOrdersModal.querySelector(".relative.z-10").classList.add("scale-95");
             adminOrdersBackdrop.classList.add("opacity-0");
         }
     };
-    
+
     if (openAdminOrdersBtn) openAdminOrdersBtn.addEventListener("click", () => toggleAdminOrdersModal(true));
     if (closeAdminOrdersBtn) closeAdminOrdersBtn.addEventListener("click", () => toggleAdminOrdersModal(false));
     if (adminOrdersBackdrop) adminOrdersBackdrop.addEventListener("click", () => toggleAdminOrdersModal(false));
 
-    
+
     // ----------------- SECTION 7: Logic Modal "Order Detail" (จากโค้ดของผม) -----------------
-    
+
     const toggleOrderDetailModal = (show) => {
         if (!orderDetailModal) return;
         if (show) {
@@ -266,13 +266,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (closeOrderDetailBtn) closeOrderDetailBtn.addEventListener("click", () => toggleOrderDetailModal(false));
     if (orderDetailBackdrop) orderDetailBackdrop.addEventListener("click", () => toggleOrderDetailModal(false));
 
-    
+
     // ----------------- SECTION 8: Logic Data "Orders" (จากโค้ดของผม) -----------------
-    
+
     async function loadAdminOrders() {
         if (!ordersTbody) return;
         ordersTbody.innerHTML = '<tr><td colspan="6" class="text-center p-5">กำลังโหลด...</td></tr>';
-        
+
         try {
             const res = await fetch("/api/admin/orders", {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -280,7 +280,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!res.ok) throw new Error("Failed to fetch orders");
 
             const orders = await res.json();
-            ordersTbody.innerHTML = ""; 
+            ordersTbody.innerHTML = "";
 
             if (orders.length === 0) {
                 ordersTbody.innerHTML = '<tr><td colspan="6" class="text-center p-5">ไม่พบออเดอร์</td></tr>';
@@ -296,9 +296,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     day: '2-digit', month: 'short', year: 'numeric'
                 });
 
-                
+
                 let statusButtonHtml;
-                if (order.status === 'waiting_shipment') { 
+                if (order.status === 'waiting_shipment') {
                     statusButtonHtml = `
                     <button class="mark-shipped-btn bg-yellow-500 hover:bg-yellow-600 text-white text-xs py-1 px-2 rounded" data-id="${order.id}">
                         <i class="fa-solid fa-box"></i> Mark as Shipped
@@ -323,7 +323,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 `;
                 ordersTbody.appendChild(tr);
             });
-            
+
             addTableEventListeners();
 
         } catch (err) {
@@ -334,16 +334,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function addTableEventListeners() {
         if (!ordersTbody) return;
-        
-        // (Clone และ Replace เพื่อลบ Event Listener เก่า ป้องกันการผูกซ้ำซ้อน)
+
         const newTbody = ordersTbody.cloneNode(true);
         ordersTbody.parentNode.replaceChild(newTbody, ordersTbody);
-        
-        newTbody.addEventListener("click", (e) => {
+
+        ordersTbody = newTbody;
+
+        ordersTbody.addEventListener("click", (e) => {
             const viewBtn = e.target.closest(".view-btn");
             if (viewBtn) {
                 const orderData = JSON.parse(viewBtn.dataset.order);
-                showOrderDetailModal(orderData); // (เปลี่ยนชื่อฟังก์ชันเล็กน้อย)
+                showOrderDetailModal(orderData); 
                 return;
             }
 
@@ -376,7 +377,7 @@ document.addEventListener("DOMContentLoaded", () => {
         modalDetailBody.innerHTML = `<div><h4 class="font-bold text-lg mb-2">รายการสินค้า</h4>${itemsHtml}</div>
                                  <div><h4 class="font-bold text-lg mb-2">ข้อมูลจัดส่ง</h4><div id="modal-address">${addressHtml}</div></div>`;
 
-        toggleOrderDetailModal(true); 
+        toggleOrderDetailModal(true);
 
         try {
             const addrRes = await fetch(`/api/admin/address/${order.userId}`, {
@@ -389,7 +390,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const address = await addrRes.json();
-            
+
             // (เช็ก field ที่อยู่ของคุณให้ตรง)
             addressHtml = `
                 <p><strong>ชื่อผู้รับ:</strong> ${address.fullName || "-"}</p>
@@ -403,7 +404,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         } catch (err) {
             const modalAddressEl = document.getElementById("modal-address");
-            if(modalAddressEl) modalAddressEl.innerHTML = `<p class="text-red-500">(${err.message})</p>`;
+            if (modalAddressEl) modalAddressEl.innerHTML = `<p class="text-red-500">(${err.message})</p>`;
         }
     }
 
@@ -411,9 +412,9 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const res = await fetch(`/api/admin/orders/${orderId}/status`, {
                 method: "PUT",
-                headers: { 
+                headers: {
                     "Content-Type": "application/json",
-                    'Authorization': `Bearer ${token}` 
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({ status: "shipped" })
             });

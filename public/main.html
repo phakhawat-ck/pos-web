@@ -122,17 +122,17 @@
 
         <section>
             <section class="my-8">
-                <div class="flex justify-between items-center mb-6">
+                <div class="flex justify-between items-center mb-6 gap-4">
                     <!-- SHOP title -->
                     <h2 class="text-2xl font-bold text-indigo-600 relative inline-block">
                         SHOP
                         <span class="absolute left-0 -bottom-2 w-5 h-0.5 bg-black rounded-full"></span>
                     </h2>
 
-                    <div>
+                    <div class="flex items-center gap-3">
                         <!-- Add Shirt button -->
                         <button id="openAddShirtBtn"
-                            class="bg-indigo-600 text-white px-6 py-2 rounded-xl hover:bg-indigo-500 transition shadow-md hidden">
+                            class="bg-indigo-600 text-white px-6 py-2 rounded-xl hover:bg-indigo-500 transition shadow-md hidden sm:">
                             Add Shirt
                         </button>
 
@@ -268,14 +268,14 @@
         </div>
 
         <div id="adminOrdersModal"
-            class="fixed inset-0 flex items-center justify-center opacity-0 pointer-events-none transition-all duration-200 z-20">
+            class="fixed inset-0 flex items-center justify-center opacity-0 pointer-events-none transition-all duration-200 z-20 p-2">
 
             <div id="adminOrdersBackdrop"
                 class="absolute inset-0 bg-black/40 backdrop-blur-sm opacity-0 transition-opacity duration-200">
             </div>
 
             <div
-                class="relative z-10 bg-white w-full max-w-5xl rounded-2xl shadow-2xl p-6 scale-95 transition-transform duration-200 transform m-5">
+                class="relative z-10 bg-white w-full max-w-5xl rounded-2xl shadow-2xl p-6 scale-95 transition-transform duration-200 transform">
 
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-2xl font-bold text-gray-900">ระบบจัดการออเดอร์ (Admin)</h3>
@@ -285,7 +285,7 @@
                 </div>
 
                 <div class="max-h-[70vh] overflow-y-auto">
-                    <div class="shadow-md rounded-lg overflow-hidden border border-gray-200">
+                    <div class="shadow-md rounded-lg overflow-x-auto border border-gray-200">
                         <table class="min-w-full leading-normal">
                             <thead class="bg-gray-800 text-white">
                                 <tr>
