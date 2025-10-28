@@ -29,7 +29,7 @@
             const loadingText = document.getElementById("loading-text");
 
             try {
-                // 1. ดึงข้อมูลจาก API (ตามที่เราคุยกันไว้)
+                // 1. ดึงข้อมูลจาก API 
                 const res = await fetch("/api/orders/history", { credentials: "include" });
 
                 if (!res.ok) {
@@ -37,7 +37,7 @@
                 }
 
                 const orders = await res.json(); // นี่คือ Array ที่คุณส่งมา
-                loadingText.remove(); // ลบ "กำลังโหลด..." ออก
+                loadingText.remove(); 
 
                 // 2. ตรวจสอบว่ามีรายการสั่งซื้อหรือไม่
                 if (orders.length === 0) {

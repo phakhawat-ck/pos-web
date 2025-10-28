@@ -510,7 +510,7 @@ app.get("/api/admin/orders", verifyToken, async (req, res) => {
       include: {
         // 3. ดึงข้อมูล user ที่สั่ง และ item+shirt ในออเดอร์
         user: {
-          select: { id: true, username: true } // เลือกเฉพาะข้อมูล user ที่จำเป็น
+          select: { id: true, username: true, name: true } // เลือกเฉพาะข้อมูล user ที่จำเป็น
         },
         items: {
           include: { shirt: true }

@@ -311,7 +311,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 tr.innerHTML = `
                     <td class="px-5 py-4 text-sm">${order.id}</td>
-                    <td class="px-5 py-4 text-sm">${order.user.username} (ID: ${order.user.id})</td>
+                    <td class="px-5 py-4 text-sm">${order.user.name || order.user.username} (ID: ${order.user.id})</td>
                     <td class="px-5 py-4 text-sm">${date}</td>
                     <td class="px-5 py-4 text-sm">${total.toFixed(2)}฿</td>
                     <td class="px-5 py-4 text-sm font-medium" id="status-cell-${order.id}">${statusButtonHtml}</td>
@@ -358,7 +358,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function showOrderDetailModal(order) {
-        modalDetailTitle.textContent = `รายละเอียด Order #${order.id} (ลูกค้า: ${order.user.username})`;
+        modalDetailTitle.textContent = `รายละเอียด Order #${order.id} (ลูกค้า: ${order.user.username || order.user.name})`;
 
         const itemsHtml = order.items.map(item => `
             <div class="flex items-center gap-4 border-b pb-2">
