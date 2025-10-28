@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // ----------------- SECTION 1: รวม Element Selectors -----------------
     
-    // --- (จากโค้ดของคุณ) Elements "Add Shirt" ---
+    // ---Elements "Add Shirt" ---
     const addShirtForm = document.getElementById("addShirtForm");
     const openAddShirtBtn = document.getElementById("openAddShirtBtn");
     const addShirtModal = document.getElementById("addShirtModal");
@@ -11,14 +11,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalBox = addShirtModal ? addShirtModal.querySelector(".relative.z-10") : null;
     const container = document.getElementById("shirt-container");
 
-    // --- (จากโค้ดของผม) Elements "Manage Orders" ---
+    // ---Elements "Manage Orders" ---
     const openAdminOrdersBtn = document.getElementById("openAdminOrdersBtn");
     const adminOrdersModal = document.getElementById("adminOrdersModal");
     const adminOrdersBackdrop = document.getElementById("adminOrdersBackdrop");
     const closeAdminOrdersBtn = document.getElementById("closeAdminOrdersBtn");
     const ordersTbody = document.getElementById("orders-table-body");
 
-    // --- (จากโค้ดของผม) Elements "Order Detail" (Modal ซ้อน) ---
+    // ---Elements "Order Detail" (Modal ซ้อน) ---
     const orderDetailModal = document.getElementById("orderDetailModal");
     const orderDetailBackdrop = document.getElementById("orderDetailBackdrop");
     const closeOrderDetailBtn = document.getElementById("closeOrderDetailBtn");
@@ -235,7 +235,7 @@ document.addEventListener("DOMContentLoaded", () => {
             adminOrdersModal.classList.remove("opacity-0", "pointer-events-none");
             adminOrdersModal.querySelector(".relative.z-10").classList.remove("scale-95");
             adminOrdersBackdrop.classList.remove("opacity-0");
-            loadAdminOrders(); // 👈 โหลดข้อมูลใหม่ทุกครั้งที่เปิด
+            loadAdminOrders(); 
         } else {
             adminOrdersModal.classList.add("opacity-0", "pointer-events-none");
             adminOrdersModal.querySelector(".relative.z-10").classList.add("scale-95");
@@ -296,9 +296,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     day: '2-digit', month: 'short', year: 'numeric'
                 });
 
-                // ✅ แก้ไข `success` -> `waiting_shipment`
+                
                 let statusButtonHtml;
-                if (order.status === 'waiting_shipment') { // 👈 แก้ไขแล้ว
+                if (order.status === 'waiting_shipment') { 
                     statusButtonHtml = `
                     <button class="mark-shipped-btn bg-yellow-500 hover:bg-yellow-600 text-white text-xs py-1 px-2 rounded" data-id="${order.id}">
                         <i class="fa-solid fa-box"></i> Mark as Shipped
@@ -376,7 +376,7 @@ document.addEventListener("DOMContentLoaded", () => {
         modalDetailBody.innerHTML = `<div><h4 class="font-bold text-lg mb-2">รายการสินค้า</h4>${itemsHtml}</div>
                                  <div><h4 class="font-bold text-lg mb-2">ข้อมูลจัดส่ง</h4><div id="modal-address">${addressHtml}</div></div>`;
 
-        toggleOrderDetailModal(true); // 👈 เปิด Modal Detail
+        toggleOrderDetailModal(true); 
 
         try {
             const addrRes = await fetch(`/api/admin/address/${order.userId}`, {
@@ -436,4 +436,4 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-}); // <-- ปิด "DOMContentLoaded"
+}); 

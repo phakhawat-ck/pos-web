@@ -1,4 +1,3 @@
-// ====================== alert.js ======================
 window.showAlert = function (message, type = "info") {
   const container = document.getElementById("toastContainer");
   if (!container) return;

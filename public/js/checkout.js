@@ -1,4 +1,3 @@
-// 🔹 ย้าย Element ทั้งหมดมาไว้ด้านบนเพื่อประสิทธิภาพ
 const cartDropdownItems = document.getElementById("cartDropdownItems");
 const checkoutTotal = document.getElementById("checkoutTotal");
 const placeOrderBtn = document.getElementById("placeOrderBtn");
@@ -15,11 +14,11 @@ let hasShippingAddress = false;
 // -----------------------------------------------------------
 function updatePlaceOrderButtonState() {
   if (hasItemsInCart && hasShippingAddress) {
-    // ✅ มีทั้งของ และ ที่อยู่: เปิดปุ่ม
+    // มีทั้งของ และ ที่อยู่: เปิดปุ่ม
     placeOrderBtn.disabled = false;
     placeOrderBtn.classList.remove("opacity-50", "cursor-not-allowed");
   } else {
-    // ❌ ขาดอย่างใดอย่างหนึ่ง: ปิดปุ่ม
+    // ขาดอย่างใดอย่างหนึ่ง: ปิดปุ่ม
     placeOrderBtn.disabled = true;
     placeOrderBtn.classList.add("opacity-50", "cursor-not-allowed");
   }
@@ -48,7 +47,6 @@ async function loadCheckoutData() {
 
       // 🔹 3. อัปเดตสถานะ (ไม่มีของ)
       hasItemsInCart = false;
-      // ❌ (ลบโค้ดที่ปิดปุ่มจากตรงนี้)
       return;
     }
 
@@ -87,7 +85,6 @@ async function loadCheckoutData() {
 
     // 🔹 3. อัปเดตสถานะ (มีของ)
     hasItemsInCart = true;
-    // ❌ (ลบโค้ดที่เปิดปุ่มจากตรงนี้)
 
   } catch (err) {
     console.error("โหลดข้อมูลตะกร้าไม่สำเร็จ:", err);
@@ -116,7 +113,7 @@ cartDropdownItems.addEventListener("click", async (e) => {
     });
     const result = await res.json();
     if (res.ok) {
-      loadCheckoutData(); // ✅ ถูกต้อง (เมื่อโหลดใหม่ สถานะ hasItemsInCart จะถูกอัปเดตเอง)
+      loadCheckoutData(); 
     } else {
       alert(result.error || "ไม่สามารถลบสินค้าได้");
       btn.disabled = false;
@@ -129,7 +126,6 @@ cartDropdownItems.addEventListener("click", async (e) => {
 });
 
 
-// ... (โค้ด Event Listener ของปุ่มสั่งซื้อ ไม่ต้องแก้) ...
 placeOrderBtn.addEventListener("click", async () => {
   try {
     const res = await fetch("/api/checkout", {
@@ -140,7 +136,7 @@ placeOrderBtn.addEventListener("click", async () => {
     const data = await res.json();
     if (res.ok) {
       alert("สั่งซื้อสำเร็จ! ขอบคุณที่ใช้บริการ");
-      loadCheckoutData(); // ✅ ถูกต้อง
+      loadCheckoutData(); 
     } else {
       alert("เกิดข้อผิดพลาด: " + (data.error || data.message || "ไม่สามารถสั่งซื้อได้"));
     }
@@ -185,8 +181,6 @@ async function loadAddress() {
     
     // 🔹 3. อัปเดตสถานะ (ไม่มีที่อยู่)
     hasShippingAddress = false;
-    // ❌ (ลบโค้ดที่ปิดปุ่มจากตรงนี้)
-    
   } finally {
     // 🔹 4. เรียกฟังก์ชันอัปเดตปุ่มกลาง (ไม่ว่าจะสำเร็จหรือล้มเหลว)
     updatePlaceOrderButtonState();

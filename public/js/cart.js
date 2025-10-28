@@ -55,7 +55,7 @@ async function loadCartData() {
       quantity: i.quantity
     }));
 
-    // --- คำนวณยอดรวม (จาก shop.js เดิม) ---
+    // --- คำนวณยอดรวม ---
     const totalQuantity = mappedItems.reduce((sum, item) => sum + item.quantity, 0);
     const totalPrice = mappedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
