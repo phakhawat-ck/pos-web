@@ -2,7 +2,28 @@
 const cartDropdownItems = document.getElementById("cartDropdownItems");
 const checkoutTotal = document.getElementById("checkoutTotal");
 const placeOrderBtn = document.getElementById("placeOrderBtn");
-const totalItemsEl = document.getElementById("totalItems"); // 🔹 ย้ายมานี่
+const totalItemsEl = document.getElementById("totalItems");
+
+// -----------------------------------------------------------
+// 🔹 1. สร้างตัวแปรสถานะส่วนกลาง (Global State)
+// -----------------------------------------------------------
+let hasItemsInCart = false;
+let hasShippingAddress = false;
+
+// -----------------------------------------------------------
+// 🔹 2. สร้างฟังก์ชันอัปเดตปุ่มกลาง
+// -----------------------------------------------------------
+function updatePlaceOrderButtonState() {
+  if (hasItemsInCart && hasShippingAddress) {
+    // ✅ มีทั้งของ และ ที่อยู่: เปิดปุ่ม
+    placeOrderBtn.disabled = false;
+    placeOrderBtn.classList.remove("opacity-50", "cursor-not-allowed");
+  } else {
+    // ❌ ขาดอย่างใดอย่างหนึ่ง: ปิดปุ่ม
+    placeOrderBtn.disabled = true;
+    placeOrderBtn.classList.add("opacity-50", "cursor-not-allowed");
+  }
+}
 
 async function loadCheckoutData() {
   try {
@@ -23,9 +44,11 @@ async function loadCheckoutData() {
     if (items.length === 0) {
       cartDropdownItems.innerHTML = `<p class="text-center text-gray-500 py-4">ไม่มีสินค้าในตะกร้า</p>`;
       checkoutTotal.textContent = "0.00";
-      placeOrderBtn.disabled = true;
-      placeOrderBtn.classList.add("opacity-50", "cursor-not-allowed");
-      if (totalItemsEl) totalItemsEl.textContent = "0"; // ✅ แก้ไขจุดที่ 1
+      if (totalItemsEl) totalItemsEl.textContent = "0";
+
+      // 🔹 3. อัปเดตสถานะ (ไม่มีของ)
+      hasItemsInCart = false;
+      // ❌ (ลบโค้ดที่ปิดปุ่มจากตรงนี้)
       return;
     }
 
@@ -34,83 +57,79 @@ async function loadCheckoutData() {
     const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
 
     items.forEach(item => {
-      const itemTotal = item.price * item.quantity;
-      total += itemTotal;
+      // ... (โค้ดสร้าง div เหมือนเดิม) ...
+       const itemTotal = item.price * item.quantity;
+       total += itemTotal;
 
-      const div = document.createElement("div");
-      div.className = "flex justify-between items-center p-2 bg-white ";
-      div.innerHTML = `
-    <div class="flex items-center gap-4 ">
-      <span class="text-[20px] font-bold text-indigo-600  text-center">${item.quantity} x </span>
-      <div>
-        <p class="font-medium">${item.shirtName}</p>
-        <p class="text-sm text-gray-500">size: ${item.size}</p>
-      </div>
-    </div>
-    <div class="flex items-center gap-3">
-      <p class="font-semibold">${itemTotal.toFixed(2)}฿</p>
-      <button class="delete-btn text-red-700 opacity-70 hover:opacity-100 hover:scale-110 transition-all" data-id="${item.id}">
-        <i class="fa-solid fa-trash"></i>
-      </button>
-    </div>
-  `;
-      cartDropdownItems.appendChild(div);
+       const div = document.createElement("div");
+       div.className = "flex justify-between items-center p-2 bg-white ";
+       div.innerHTML = `
+     <div class="flex items-center gap-4 ">
+       <span class="text-[20px] font-bold text-indigo-600  text-center">${item.quantity} x </span>
+       <div>
+         <p class="font-medium">${item.shirtName}</p>
+         <p class="text-sm text-gray-500">size: ${item.size}</p>
+       </div>
+     </div>
+     <div class="flex items-center gap-3">
+       <p class="font-semibold">${itemTotal.toFixed(2)}฿</p>
+       <button class="delete-btn text-red-700 opacity-70 hover:opacity-100 hover:scale-110 transition-all" data-id="${item.id}">
+         <i class="fa-solid fa-trash"></i>
+       </button>
+     </div>
+   `;
+       cartDropdownItems.appendChild(div);
     });
 
     // --- 3. อัปเดตยอดรวม ---
     checkoutTotal.textContent = total.toFixed(2);
     if (totalItemsEl) totalItemsEl.textContent = totalQuantity;
 
-    // ✅ เปิดปุ่ม (กรณีเคยว่างแล้วมีของ)
-    placeOrderBtn.disabled = false;
-    placeOrderBtn.classList.remove("opacity-50", "cursor-not-allowed");
+    // 🔹 3. อัปเดตสถานะ (มีของ)
+    hasItemsInCart = true;
+    // ❌ (ลบโค้ดที่เปิดปุ่มจากตรงนี้)
 
   } catch (err) {
     console.error("โหลดข้อมูลตะกร้าไม่สำเร็จ:", err);
     cartDropdownItems.innerHTML = `<p class="text-center text-red-500 py-4">เกิดข้อผิดพลาดในการโหลดสินค้า</p>`;
+    // 🔹 3. อัปเดตสถานะ (ถือว่าไม่มีของ ถ้าโหลดเฟล)
+    hasItemsInCart = false;
+  } finally {
+    // 🔹 4. เรียกฟังก์ชันอัปเดตปุ่มกลาง (ไม่ว่าจะสำเร็จหรือล้มเหลว)
+    updatePlaceOrderButtonState();
   }
 }
 
-// --- ✅ แก้ไขจุดที่ 2: ใช้ Event Delegation ---
-// ผูก Listener ที่ "ตัวครอบ" เพียงครั้งเดียว
+// ... (โค้ด Event Listener ของปุ่มลบ ไม่ต้องแก้) ...
 cartDropdownItems.addEventListener("click", async (e) => {
-  // เช็คว่าสิ่งที่คลิก (e.target) หรือพ่อของมัน คือปุ่ม ".delete-btn" หรือไม่
   const btn = e.target.closest(".delete-btn");
-
-  // ถ้าไม่ใช่ปุ่ม delete-btn ก็ไม่ต้องทำอะไร
   if (!btn) return;
 
   const id = btn.dataset.id;
   if (!confirm("คุณต้องการลบสินค้านี้ออกจากตะกร้าหรือไม่?")) return;
 
   try {
-    btn.disabled = true; // ปิดปุ่มชั่วคราว
+    btn.disabled = true; 
     const res = await fetch(`/api/cart/${id}`, {
       method: "DELETE",
       credentials: "include",
     });
-
     const result = await res.json();
-
     if (res.ok) {
-      // ไม่ต้อง alert ก็ได้ เพราะ UI จะ refresh ทันที
-      // alert("ลบสินค้าเรียบร้อยแล้ว"); 
-      loadCheckoutData(); // ✅ รีโหลดตะกร้า (วิธีนี้ถูกต้องแล้ว)
+      loadCheckoutData(); // ✅ ถูกต้อง (เมื่อโหลดใหม่ สถานะ hasItemsInCart จะถูกอัปเดตเอง)
     } else {
       alert(result.error || "ไม่สามารถลบสินค้าได้");
-      btn.disabled = false; // เปิดปุ่มคืนถ้าลบไม่สำเร็จ
+      btn.disabled = false;
     }
   } catch (err) {
     console.error("เกิดข้อผิดพลาดในการลบสินค้า:", err);
     alert("ไม่สามารถลบสินค้าได้");
-    btn.disabled = false; // เปิดปุ่มคืนถ้ายกเลิก
+    btn.disabled = false; 
   }
 });
 
 
-// --- (โค้ดส่วนที่เหลือของคุณ) ---
-
-// Handle place order button
+// ... (โค้ด Event Listener ของปุ่มสั่งซื้อ ไม่ต้องแก้) ...
 placeOrderBtn.addEventListener("click", async () => {
   try {
     const res = await fetch("/api/checkout", {
@@ -121,7 +140,7 @@ placeOrderBtn.addEventListener("click", async () => {
     const data = await res.json();
     if (res.ok) {
       alert("สั่งซื้อสำเร็จ! ขอบคุณที่ใช้บริการ");
-      loadCheckoutData(); // รีเฟรชตะกร้า (ถูกต้อง)
+      loadCheckoutData(); // ✅ ถูกต้อง
     } else {
       alert("เกิดข้อผิดพลาด: " + (data.error || data.message || "ไม่สามารถสั่งซื้อได้"));
     }
@@ -136,14 +155,12 @@ async function loadAddress() {
   try {
     const res = await fetch("/api/address", { credentials: "include" });
     if (!res.ok) {
-      // ถ้า fetch ไม่สำเร็จ (เช่น 404) ก็ควรโยน Error
       const errorData = await res.json();
       throw new Error(errorData.error || "ไม่สามารถโหลดข้อมูลที่อยู่ได้");
     }
 
     const data = await res.json();
-
-    // 🔹 ตรวจสอบว่ามีที่อยู่จริงหรือไม่
+    
     if (!data || !data.fullName) {
       throw new Error("ผู้ใช้ยังไม่ได้กรอกที่อยู่");
     }
@@ -156,14 +173,23 @@ async function loadAddress() {
     document.getElementById("zipCode").textContent = data.zipCode;
     document.getElementById("phone").textContent = data.phone;
 
+    // 🔹 3. อัปเดตสถานะ (มีที่อยู่)
+    hasShippingAddress = true;
+
   } catch (err) {
     console.error("เกิดข้อผิดพลาดในการโหลดที่อยู่:", err.message);
     document.getElementById("addressContainer").innerHTML = `
-      <p class="text-red-500">คุณยังไม่ได้กรอกที่อยู่จัดส่ง</p>
+      <p class="text-red-500">คุณยังไม่ได้กรอกที่อยู่จัดส่ง</p>
       <a href="/main.html?action=edit_address" class="text-indigo-600 hover:underline">ไปที่หน้าจัดการที่อยู่</a>
-    `;
-    placeOrderBtn.disabled = true;
-    placeOrderBtn.classList.add("opacity-50", "cursor-not-allowed");
+    `;
+    
+    // 🔹 3. อัปเดตสถานะ (ไม่มีที่อยู่)
+    hasShippingAddress = false;
+    // ❌ (ลบโค้ดที่ปิดปุ่มจากตรงนี้)
+    
+  } finally {
+    // 🔹 4. เรียกฟังก์ชันอัปเดตปุ่มกลาง (ไม่ว่าจะสำเร็จหรือล้มเหลว)
+    updatePlaceOrderButtonState();
   }
 }
 
@@ -172,6 +198,10 @@ document.getElementById('backBtn').addEventListener('click', function () {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
+  // 🔹 5. ปิดปุ่มไว้เป็นค่าเริ่มต้นก่อนเลย
+  updatePlaceOrderButtonState(); 
+  
+  // จากนั้นค่อยโหลดข้อมูล
   loadCheckoutData();
   loadAddress();
 });
