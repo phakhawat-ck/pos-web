@@ -1,10 +1,9 @@
-
-// ====================== SHOP.JS ======================
+// ====================== SHOP.JS (Refactored) ======================
+// ไฟล์นี้จัดการเฉพาะการโหลดสินค้าและการ "เพิ่ม" ลงตะกร้า
 
 // รอ DOM โหลดก่อน
 document.addEventListener("DOMContentLoaded", () => {
     loadShirts();
-    loadCartFromBackend();
 });
 
 // ---------------------- โหลดเสื้อ ----------------------
@@ -21,7 +20,7 @@ async function loadShirts() {
         const sessionRes = await fetch("/api/check-session", { credentials: "include" });
         const sessionData = await sessionRes.json();
         const user = sessionData.user;
-        const isAdmin = user && user.role === "admin"; // Assuming the user object has a `role` property
+        const isAdmin = user && user.role === "admin"; 
 
         shirts.forEach(shirt => {
             const card = document.createElement("div");
@@ -105,8 +104,14 @@ async function loadShirts() {
                     addBtn.classList.add("opacity-0", "scale-90", "pointer-events-none");
                     addBtn.classList.remove("opacity-100", "scale-100");
 
-                    // Update cart realtime
-                    updateCartUI(data.items || []);
+                    // เรียกฟังก์ชัน global จาก cart.js เพื่ออัปเดตตะกร้า
+                    
+                    if (typeof loadCartData === 'function') {
+                        loadCartData();
+                    } else {
+                        console.warn("loadCartData() is not defined. Make sure cart.js is loaded.");
+                    }
+
                 } catch (err) {
                     console.error(err);
                     alert(err.message || "เกิดข้อผิดพลาดในการเพิ่มลงตะกร้า");
@@ -118,85 +123,3 @@ async function loadShirts() {
         console.error("❌ Error loading shirts:", err);
     }
 }
-
-// ---------------------- อัปเดต UI ตะกร้า ----------------------
-function updateCartUI(items) {
-    const cartCount = document.getElementById("cartCount");
-    const cartDropdownItems = document.getElementById("cartDropdownItems");
-    const cartDropdownCount = document.getElementById("cartDropdownCount");
-    const cartDropdownTotal = document.getElementById("cartDropdownTotal");
-    const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
-    
-
-    if (cartDropdownCount) cartDropdownCount.textContent = totalQuantity;
-    const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    if (cartDropdownTotal) cartDropdownTotal.textContent = totalPrice;
-
-    if (cartCount) cartCount.textContent = totalQuantity;
-    if (cartDropdownItems) {
-        cartDropdownItems.innerHTML = "";
-        if (items.length === 0) {
-            cartDropdownItems.innerHTML = `<p class="text-center text-gray-500 py-4">ตะกร้าว่าง</p>`;
-        } else {
-            items.forEach(item => {
-                const div = document.createElement("div");
-                div.className = "flex justify-between items-center p-2 border-b border-gray-100";
-                div.innerHTML = `
-          <div>
-            <p class="font-medium">${item.shirtName || item.shirt?.shirt_name}</p>
-            <p class="text-sm text-gray-500">ขนาด: ${item.size} x ${item.quantity}</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="font-semibold">${item.price}฿</span>
-            <button class="remove-btn text-red-500 hover:text-red-700" data-id="${item.id}">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </div>
-        `;
-                cartDropdownItems.appendChild(div);
-            });
-        }
-    }
-}
-
-// ---------------------- โหลด cart จาก backend ----------------------
-async function loadCartFromBackend() {
-    try {
-        const res = await fetch("/api/cart", { credentials: "include" });
-        const data = await res.json();
-        updateCartUI(data.items || []);
-    } catch (err) {
-        console.error("❌ Error loading cart:", err);
-    }
-}
-
-
-// ---------------------- Remove cart item ----------------------
-document.addEventListener("click", async (e) => {
-    const btn = e.target.closest(".remove-btn");
-    if (!btn) return;
-
-    const itemId = parseInt(btn.dataset.id);
-
-    try {
-        const res = await fetch(`/api/cart/${itemId}`, {
-            method: "DELETE",
-            credentials: "include",
-        });
-
-        const data = await res.json();
-        if (!res.ok || data.error) throw new Error(data.error || "ลบไม่สำเร็จ");
-
-        // ✅ ลบ element ออกจาก DOM โดยตรง
-        const itemEl = btn.closest("div.flex.justify-between.items-center");
-        if (itemEl) itemEl.remove();
-
-        // ✅ โหลด cart ใหม่จาก backend เพื่อ sync จำนวนและ total
-        loadCartFromBackend();
-
-    } catch (err) {
-        console.error(err);
-        alert(err.message || "ไม่สามารถลบสินค้าได้");
-    }
-});
-

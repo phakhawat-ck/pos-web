@@ -211,7 +211,7 @@ app.put("/api/address", verifyToken, async (req, res) => {
 // GET /api/shirts - ดึงรายการเสื้อทั้งหมด
 app.get("/api/shirts", async (req, res) => {
   const shirts = await prisma.shirt.findMany({
-    orderBy: { id: "desc" }
+    orderBy: { id: "asc" }
   });
   res.json(shirts);
 });
@@ -487,7 +487,12 @@ app.delete("/api/cart/:id", async (req, res) => {
   }
 });
 
-// ADMIN DASHBOARD ROUTES
+
+
+
+
+// ---------- Admin Routes ----------
+
 // GET /api/admin/orders - (สำหรับ Admin) ดึง Order ที่ไม่ใช่ pending ทั้งหมด
 app.get("/api/admin/orders", verifyToken, async (req, res) => {
   // 1. ตรวจสอบว่าเป็น Admin
