@@ -198,7 +198,6 @@ document.getElementById('backBtn').addEventListener('click', function () {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  // 🔹 5. ปิดปุ่มไว้เป็นค่าเริ่มต้นก่อนเลย
   updatePlaceOrderButtonState(); 
   
   // จากนั้นค่อยโหลดข้อมูล
