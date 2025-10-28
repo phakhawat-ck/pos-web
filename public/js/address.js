@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // ✅ ทำให้ callback เป็น async เพื่อใช้ await ด้านในได้
     const btn = document.getElementById("profileBtn");
     const menu = document.getElementById("profileMenu");
-    const editBtn = menu.querySelector("#editBtn"); 
+    const editBtn = menu.querySelector("#editBtn");
     const logoutBtn = document.getElementById("logoutBtn");
 
     // ✅ โหลดไฟล์ modal ก่อน แล้วค่อยจับ element
@@ -67,13 +67,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // 🔹 เปิด modal
-    editBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
+    const openEditModal = () => {
         menu.classList.remove("opacity-100", "scale-100", "pointer-events-auto");
         modal.classList.remove("opacity-0", "pointer-events-none");
         modal.classList.add("opacity-100");
         modal.querySelector(".transform").classList.replace("scale-95", "scale-100");
         backdrop.classList.add("opacity-100");
+    };
+
+    editBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openEditModal();
     });
 
     // 🔹 ปิด modal (กดยกเลิก หรือคลิกนอกกล่อง)
@@ -142,4 +146,16 @@ document.addEventListener("DOMContentLoaded", async () => {
             statusEl.style.color = "red";
         }
     });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const action = urlParams.get('action');
+
+    if (action === 'edit_address') {
+        openEditModal(); // 💡 สั่งเปิด Modal ทันที
+
+        // (แนะนำ) ลบ query param ออกจาก URL เพื่อไม่ให้ Modal เด้งอีก
+        // เมื่อผู้ใช้กดรีเฟรชหน้านี้
+        const newUrl = window.location.pathname; // เอาแค่ path
+        window.history.replaceState({}, '', newUrl);
+    }
 });

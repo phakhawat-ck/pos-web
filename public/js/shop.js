@@ -79,7 +79,6 @@ async function loadShirts() {
 
             // ----------------- Add to Cart -----------------
             addBtn.addEventListener("click", async () => {
-                if (!selectedSize) return alert("กรุณาเลือกขนาดก่อนเพิ่มลงตะกร้า");
 
                 try {
                     const res = await fetch("/api/add-to-cart", {
@@ -96,7 +95,7 @@ async function loadShirts() {
                     const data = await res.json();
                     if (!res.ok || data.error) throw new Error(data.error || "Add to cart failed");
 
-                    alert(`${shirt.shirt_name} ขนาด ${selectedSize} ถูกเพิ่มลงตะกร้าเรียบร้อย!`);
+                    showAlert(`${shirt.shirt_name} <span class"text-black">ขนาด</span> ${selectedSize} ถูกเพิ่มลงตะกร้าเรียบร้อย!`, "success");
 
                     // รีเซ็ต size
                     sizeButtons.forEach(b => b.classList.remove("bg-gray-600", "text-white"));
@@ -114,7 +113,7 @@ async function loadShirts() {
 
                 } catch (err) {
                     console.error(err);
-                    alert(err.message || "เกิดข้อผิดพลาดในการเพิ่มลงตะกร้า");
+                    showAlert(err.message || "เกิดข้อผิดพลาดในการเพิ่มลงตะกร้า");
                 }
             });
 

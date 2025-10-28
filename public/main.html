@@ -13,7 +13,9 @@
     <script defer src="js/shop.js"></script>
     <script defer src="js/cart.js"></script>
     <script defer src="js/address.js"></script>
+    <script defer src="js/history.js"></script>
 
+    <script src="js/utils.js"></script>
     <script defer src="js/admin.js"></script>
 </head>
 
@@ -36,9 +38,15 @@
                 <!-- เมนู dropdown -->
                 <div id="profileMenu"
                     class="absolute right-0 m-2 w-36 bg-white border border-gray-200 rounded-xl shadow-lg opacity-0 scale-95 pointer-events-none transition-all duration-300 origin-top-right z-50 ">
+
                     <button id="editBtn" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 rounded-t-xl">
                         Edit address
                     </button>
+
+                    <button id="historyBtn" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
+                        Order History
+                    </button>
+
                     <button id="logoutBtn"
                         class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 rounded-b-xl text-red-600">
                         Logout
@@ -52,7 +60,7 @@
 
         </div>
 
-        <section class="w-full border-b border-gray-200 sticky top-0  z-40 mt-2 bg-white">
+        <section class="w-full border-b border-gray-200 sticky top-0  z-20 mt-2 bg-white">
             <nav class="max-w-7xl mx-auto flex items-center justify-between px-4 py-2">
                 <div class="text-2xl font-extrabold">LOGO</div>
 
@@ -84,7 +92,7 @@
 
 
         <!-- hero -->
-        <div class="container mx-auto px-4 m-2">
+        <div class="container mx-auto px-4 m-2 ">
             <section class="section_hero">
                 <div class="relative isolate px-6 pt-14 lg:px-8">
                     <div aria-hidden="true"
@@ -121,11 +129,18 @@
                         <span class="absolute left-0 -bottom-2 w-5 h-0.5 bg-black rounded-full"></span>
                     </h2>
 
-                    <!-- Add Shirt button -->
-                    <button id="openAddShirtBtn"
-                        class="bg-indigo-600 text-white px-6 py-2 rounded-xl hover:bg-indigo-500 transition shadow-md hidden">
-                        Add Shirt
-                    </button>
+                    <div>
+                        <!-- Add Shirt button -->
+                        <button id="openAddShirtBtn"
+                            class="bg-indigo-600 text-white px-6 py-2 rounded-xl hover:bg-indigo-500 transition shadow-md hidden">
+                            Add Shirt
+                        </button>
+
+                        <button id="openAdminOrdersBtn"
+                            class="bg-gray-800 text-white px-6 py-2 rounded-xl hover:bg-gray-700 transition shadow-md hidden">
+                            Manage Orders
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Shirt container -->
@@ -222,6 +237,108 @@
         </section>
 
 
+        <div id="historyModal"
+            class="fixed inset-0 flex items-center justify-center opacity-0 pointer-events-none transition-all duration-200 z-50">
+
+            <div id="historyBackdrop"
+                class="absolute inset-0 bg-black/40 backdrop-blur-sm opacity-0 transition-opacity duration-200">
+            </div>
+
+            <div
+                class="relative z-10 bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6 scale-95 transition-transform duration-200 transform m-5">
+
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Order History</h3>
+                    <button id="closeHistoryBtn" class="text-gray-400 hover:text-gray-600">
+                        <i class="fa-solid fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <div id="historyContent" class="max-h-96 overflow-y-auto space-y-4 pr-2">
+                    <p id="historyLoading" class="text-gray-500">Loading history...</p>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button id="cancelHistoryBtn" type="button"
+                        class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="adminOrdersModal"
+            class="fixed inset-0 flex items-center justify-center opacity-0 pointer-events-none transition-all duration-200 z-20">
+
+            <div id="adminOrdersBackdrop"
+                class="absolute inset-0 bg-black/40 backdrop-blur-sm opacity-0 transition-opacity duration-200">
+            </div>
+
+            <div
+                class="relative z-10 bg-white w-full max-w-5xl rounded-2xl shadow-2xl p-6 scale-95 transition-transform duration-200 transform m-5">
+
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-gray-900">ระบบจัดการออเดอร์ (Admin)</h3>
+                    <button id="closeAdminOrdersBtn" class="text-gray-400 hover:text-gray-600">
+                        <i class="fa-solid fa-times text-2xl"></i>
+                    </button>
+                </div>
+
+                <div class="max-h-[70vh] overflow-y-auto">
+                    <div class="shadow-md rounded-lg overflow-hidden border border-gray-200">
+                        <table class="min-w-full leading-normal">
+                            <thead class="bg-gray-800 text-white">
+                                <tr>
+                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">Order
+                                        ID</th>
+                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                                        ลูกค้า</th>
+                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                                        วันที่สั่ง</th>
+                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                                        ยอดรวม</th>
+                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">สถานะ
+                                    </th>
+                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                                        ดำเนินการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table-body">
+                                <tr>
+                                    <td colspan="6" class="text-center p-5">กำลังโหลดข้อมูล...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <div id="orderDetailModal"
+            class="fixed inset-0 flex items-center justify-center opacity-0 pointer-events-none transition-all duration-200 z-30">
+
+            <div id="orderDetailBackdrop"
+                class="absolute inset-0 bg-black/60 backdrop-blur-sm opacity-0 transition-opacity duration-200">
+            </div>
+
+            <div
+                class="relative z-10 bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-6 scale-95 transition-transform duration-200 transform m-5">
+
+                <div class="flex justify-between items-center pb-3 border-b">
+                    <h3 id="modalDetailTitle" class="text-2xl font-bold">รายละเอียด Order #</h3>
+                    <button id="closeOrderDetailBtn" class="text-gray-400 hover:text-gray-600">
+                        <i class="fa-solid fa-times text-2xl"></i>
+                    </button>
+                </div>
+
+                <div id="modalDetailBody" class="py-4 space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                </div>
+            </div>
+        </div>
+
+
         <script>
             document.addEventListener("DOMContentLoaded", async () => {
                 try {
@@ -235,6 +352,10 @@
                 }
             });
         </script>
+
+        <div id="toastContainer"
+            class="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center space-y-2">
+        </div>
 </body>
 
 </html>

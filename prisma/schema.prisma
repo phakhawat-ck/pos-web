@@ -39,8 +39,8 @@ model Shirt {
   shirt_size  String
   shirt_price Float
   shirt_image String?
-  shirt_color String[]
   orderItems  OrderItem[]
+  isHidden    Boolean  @default(false)
 }
 
 model Order {

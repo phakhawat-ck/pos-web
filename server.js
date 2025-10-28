@@ -33,7 +33,12 @@ app.use(express.static("public"));
 // ---------- Helper ----------
 function createToken(user) {
   return jwt.sign(
-    { id: user.id, username: user.username, role: user.role },
+    {
+      id: user.id,
+      // ใช้ name ถ้ามี (จาก Google) ถ้าไม่มีให้ใช้ username (จาก Register)
+      name: user.name || user.username,
+      role: user.role
+    },
     JWT_SECRET,
     { expiresIn: "2h" }
   );
@@ -91,7 +96,7 @@ app.post("/api/login", async (req, res) => {
 
   const token = createToken(user);
   res.cookie("token", token, { httpOnly: true, secure: true, sameSite: "none" });
-  res.json({ user: { id: user.id, username: user.username, role: user.role } });
+  res.json({ user: { id: user.id, username: user.username, name: user.username, role: user.role } });
 });
 
 // Google Login
@@ -111,7 +116,7 @@ app.post("/api/google-login", async (req, res) => {
 
     const token = createToken(user);
     res.cookie("token", token, { httpOnly: true, secure: true, sameSite: "none" });
-    res.json({ user: { id: user.id, username: user.username, role: user.role } });
+    res.json({ user: { id: user.id, username: user.username, name: user.name, role: user.role } });
   } catch {
     res.status(400).json({ error: "Google login failed" });
   }
@@ -135,7 +140,8 @@ app.get("/api/check-session", (req, res) => {
 
 // Logout
 app.post("/api/logout", (req, res) => {
-  res.clearCookie("token");
+  // ต้องใส่ Options ให้ตรงกับตอน /api/login
+  res.clearCookie("token", { httpOnly: true, secure: true, sameSite: "none" });
   res.json({ message: "Logged out successfully" });
 });
 
@@ -166,36 +172,19 @@ app.get("/api/address", verifyToken, async (req, res) => {
 // PUT /api/address - อัปเดตหรือสร้างที่อยู่ของผู้ใช้
 app.put("/api/address", verifyToken, async (req, res) => {
   const { fullName, house_number, street, city, province, zipCode, phone } = req.body;
+  const data = { fullName, house_number, street, city, province, zipCode, phone };
 
   if (!fullName || !house_number || !street || !city || !province || !zipCode || !phone) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: req.user.id }
-    });
-
-    if (!user) {
-      return res.status(400).json({ error: "User not found" });
-    }
-
-    const existing = await prisma.address.findUnique({
+    // 1 DB Call: ถ้าเจอ user_id นี้ ให้อัปเดต (update), ถ้าไม่เจอ ให้สร้าง (create)
+    const address = await prisma.address.upsert({
       where: { user_id: req.user.id },
+      update: data,
+      create: { user_id: req.user.id, ...data }
     });
-
-    let address;
-    if (existing) {
-      address = await prisma.address.update({
-        where: { user_id: req.user.id },
-        data: { fullName, house_number, street, city, province, zipCode, phone },
-      });
-    } else {
-      address = await prisma.address.create({
-        data: { user_id: req.user.id, fullName, house_number, street, city, province, zipCode, phone },
-      });
-    }
-
     res.json(address);
   } catch (err) {
     console.error(err);
@@ -250,7 +239,12 @@ app.get("/api/shirts/:id", async (req, res) => {
 
 
 // PUT /api/shirts/:id - แก้ไขเสื้อโดย ID
-app.put("/api/shirts/:id", async (req, res) => {
+app.put("/api/shirts/:id", verifyToken, async (req, res) => { // 1. เพิ่ม verifyToken
+  // 2. ตรวจสอบสิทธิ์ Admin
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ error: "Forbidden: Admin access only" });
+  }
+
   const id = parseInt(req.params.id);
   const { shirt_name, shirt_size, shirt_price, shirt_image } = req.body;
 
@@ -395,11 +389,11 @@ app.post("/api/checkout", verifyToken, async (req, res) => {
       return res.status(400).json({ error: "Cannot checkout an empty cart." });
     }
 
-    // 3. ✅ อัปเดต status จาก "pending" เป็น "success"
+    // 3. ✅ อัปเดต status จาก "pending" เป็น "waiting_shipment"
     const successOrder = await prisma.order.update({
       where: { id: pendingOrder.id },
       data: {
-        status: "success"
+        status: "waiting_shipment"
       }
     });
 
@@ -411,26 +405,28 @@ app.post("/api/checkout", verifyToken, async (req, res) => {
   }
 });
 
-// // GET /api/orders/history - ดึงประวัติการสั่งซื้อที่สำเร็จแล้ว
-// app.get("/api/orders/history", verifyToken, async (req, res) => {
-//   try {
-//     const userId = req.user.id;
+// GET /api/orders/history - ดึงประวัติการสั่งซื้อที่สำเร็จแล้ว
+app.get("/api/orders/history", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
 
-//     const orders = await prisma.order.findMany({
-//       where: {
-//         userId,
-//         status: "success" // <-- ดึงเฉพาะอันที่สำเร็จแล้ว
-//       },
-//       include: { items: { include: { shirt: true } } }, // ดึงของใน order มาด้วย
-//       orderBy: { createdAt: 'desc' } // เรียงจากใหม่ไปเก่า
-//     });
+    const orders = await prisma.order.findMany({
+      where: {
+        userId,
+        status: {
+          in: ["success", "shipped" , "waiting_shipment"] // ดึงเฉพาะสถานะเหล่านี้
+        }
+      },
+      include: { items: { include: { shirt: true } } }, // ดึงของใน order มาด้วย
+      orderBy: { createdAt: 'desc' } // เรียงจากใหม่ไปเก่า
+    });
 
-//     res.json(orders);
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ error: "Server error" });
-//   }
-// });
+    res.json(orders);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 // ---------- Cart Routes ----------
 // GET /api/cart - ดึงข้อมูลตะกร้าสินค้า
@@ -459,28 +455,30 @@ app.get("/api/cart", verifyToken, async (req, res) => {
 
 
 // DELETE /api/cart/:id - ลบสินค้าออกจากตะกร้า
-app.delete("/api/cart/:id", async (req, res) => {
+app.delete("/api/cart/:id", verifyToken, async (req, res) => { // 1. เพิ่ม verifyToken
   const id = parseInt(req.params.id);
+  const userId = req.user.id; // 2. ดึง ID ผู้ใช้ที่ล็อกอิน
+
   if (!id) return res.status(400).json({ error: "Missing id" });
 
   try {
-    // ลบสินค้า
+    // 3. สั่งลบ โดยเช็คว่า OrderItem (id) นี้ 
+    // อยู่ใน Order (order) ที่มี userId ตรงกับคนที่ล็อกอิน
     const deleted = await prisma.orderItem.deleteMany({
-      where: { id },
+      where: {
+        id: id,
+        order: {
+          userId: userId
+        }
+      },
     });
+
     if (deleted.count === 0) {
-      return res.status(404).json({ error: "ไม่พบสินค้าในตะกร้า" });
+      return res.status(404).json({ error: "ไม่พบสินค้าในตะกร้า หรือไม่มีสิทธิ์ลบ" });
     }
 
-    // ดึง cart ปัจจุบันของ user นี้
-    const userId = req.userId; // <== ถ้ามี decode JWT แล้วเก็บ userId
-    const items = await prisma.orderItem.findMany({
-      where: { userId },
-      include: { shirt: true },
-    });
-
-    // ส่งกลับ items ให้ frontend อัปเดต UI
-    res.json({ success: true, items });
+    // 4. (แนะนำ) ส่งแค่ success พอ แล้วให้ Front-end เรียก API GET /api/cart ใหม่
+    res.json({ success: true, message: "Item deleted" });
   } catch (err) {
     console.error("Backend error:", err);
     res.status(500).json({ error: "ไม่สามารถลบสินค้าได้" });

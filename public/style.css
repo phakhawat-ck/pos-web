@@ -1,8 +1,0 @@
-@import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&family=Outfit:wght@100..900&display=swap');
-
-
-*{
-    font-family: 'Outfit', 'Noto Sans Thai', sans-serif;
-    color: #333;
-}
