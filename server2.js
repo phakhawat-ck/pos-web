@@ -204,7 +204,6 @@ app.post("/api/login", async (req, res) => {
         // --- 3. สร้าง Token และตั้ง Cookie ---
         const token = createToken(user);
         // secure: true ควรใช้เมื่อ deploy บน HTTPS
-        // sameSite: 'none' หรือ 'lax' ขึ้นอยู่กับการตั้งค่า CORS และ domain
         res.cookie("token", token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: "lax" }); // ปรับ secure และ sameSite ตามสภาพแวดล้อม
 
         // ส่งข้อมูล user กลับไปให้ frontend (เอา password ออก)

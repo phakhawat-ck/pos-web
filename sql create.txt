@@ -1,0 +1,69 @@
+-- ตาราง User
+CREATE TABLE "User" (
+    "id" SERIAL PRIMARY KEY, -- SERIAL คือ autoincrement integer
+    "username" VARCHAR(255) UNIQUE, -- VARCHAR เหมาะสำหรับ string ที่จำกัดความยาว (ปรับ 255 ตามต้องการ)
+    "email" VARCHAR(255) UNIQUE,
+    "password" TEXT, -- TEXT เหมาะสำหรับ string ที่อาจยาว (เช่น password hash)
+    "google_id" TEXT UNIQUE, -- ใช้ TEXT สำหรับ Google ID
+    "role" VARCHAR(50) NOT NULL DEFAULT 'user', -- จำกัดความยาว role และใส่ NOT NULL
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, -- ใช้ TIMESTAMP(3) ให้ตรงกับ DateTime, CURRENT_TIMESTAMP คือ now()
+    "name" TEXT
+);
+
+-- ตาราง Address
+CREATE TABLE "Address" (
+    "address_id" SERIAL PRIMARY KEY,
+    "user_id" INTEGER NOT NULL UNIQUE, -- NOT NULL และ UNIQUE
+    "city" TEXT NOT NULL, -- ใช้ TEXT สำหรับ string ทั่วไป หรือ VARCHAR(255) ถ้าต้องการจำกัด
+    "street" TEXT NOT NULL,
+    "province" TEXT NOT NULL,
+    "phone" VARCHAR(20) NOT NULL, -- VARCHAR(20) อาจจะเหมาะกับเบอร์โทรมากกว่า TEXT
+    "house_number" TEXT NOT NULL,
+    "zipCode" VARCHAR(10) NOT NULL, -- VARCHAR(10) สำหรับรหัสไปรษณีย์
+    "fullName" TEXT,
+    -- สร้าง Foreign Key constraint
+    CONSTRAINT "Address_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    -- ON DELETE RESTRICT: ป้องกันการลบ User ถ้ายังมี Address อยู่
+    -- ON UPDATE CASCADE: ถ้า id ใน User เปลี่ยน ให้ update user_id ใน Address ตาม
+);
+
+-- ตาราง Shirt
+CREATE TABLE "Shirt" (
+    "id" SERIAL PRIMARY KEY,
+    "shirt_name" TEXT NOT NULL,
+    "shirt_size" TEXT NOT NULL, -- เก็บขนาดเป็น string เดียวกัน (เช่น "S,M,L")
+    "shirt_price" DOUBLE PRECISION NOT NULL, -- Float ใน Prisma คือ DOUBLE PRECISION ใน SQL
+    "shirt_image" TEXT
+);
+
+-- ตาราง Order
+CREATE TABLE "Order" (
+    "id" SERIAL PRIMARY KEY,
+    "userId" INTEGER NOT NULL,
+    "status" VARCHAR(50) NOT NULL DEFAULT 'pending',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "trackingNumber" TEXT,
+    -- สร้าง Foreign Key constraint
+    CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+-- ตาราง OrderItem
+CREATE TABLE "OrderItem" (
+    "id" SERIAL PRIMARY KEY,
+    "orderId" INTEGER NOT NULL,
+    "shirtId" INTEGER NOT NULL,
+    "size" VARCHAR(50) NOT NULL, -- จำกัดขนาด size string
+    "price" DOUBLE PRECISION NOT NULL,
+    "quantity" INTEGER NOT NULL DEFAULT 1,
+    -- สร้าง Foreign Key constraints
+    CONSTRAINT "OrderItem_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    -- ⚠️ สำคัญ: พิจารณา ON DELETE สำหรับ shirtId
+    -- ถ้าต้องการให้ลบ OrderItem เมื่อ Shirt ถูกลบ ให้ใช้ ON DELETE CASCADE
+    -- ถ้าต้องการป้องกันการลบ Shirt ถ้ายังมีใน OrderItem ให้ใช้ ON DELETE RESTRICT (เหมือน Prisma default)
+    CONSTRAINT "OrderItem_shirtId_fkey" FOREIGN KEY ("shirtId") REFERENCES "Shirt"("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+-- (Optional) สร้าง Index เพิ่มเติมเพื่อประสิทธิภาพ (Prisma อาจสร้างให้บางส่วน)
+CREATE INDEX "Order_userId_idx" ON "Order"("userId");
+CREATE INDEX "OrderItem_orderId_idx" ON "OrderItem"("orderId");
+CREATE INDEX "OrderItem_shirtId_idx" ON "OrderItem"("shirtId");
