@@ -21,7 +21,7 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
-// Middleware (เหมือนเดิม)
+// Middleware 
 app.use(cors({
     origin: ["https://pos-app-copy.vercel.app/", "http://localhost:3000"], //
     credentials: true
@@ -30,7 +30,7 @@ app.use(cookieParser()); //
 app.use(express.json()); // Parse JSON bodies
 app.use(express.static("public")); // Serve static files
 
-// ---------- Helper (เหมือนเดิม) ----------
+// ---------- Helper  ----------
 /**
  * สร้าง JWT Token สำหรับ User
  * @param {object} user - ข้อมูล User จากฐานข้อมูล (ต้องมี id, role, name หรือ username)
