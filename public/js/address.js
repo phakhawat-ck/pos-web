@@ -153,7 +153,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (action === 'edit_address') {
         openEditModal(); // 💡 สั่งเปิด Modal ทันที
 
-        // (แนะนำ) ลบ query param ออกจาก URL เพื่อไม่ให้ Modal เด้งอีก
         // เมื่อผู้ใช้กดรีเฟรชหน้านี้
         const newUrl = window.location.pathname; // เอาแค่ path
         window.history.replaceState({}, '', newUrl);

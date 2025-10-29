@@ -99,6 +99,7 @@
 
                 const data = await res.json();
 
+
                 if (data.message) {
                     status.textContent = "✅ " + data.message;
                     status.style.color = "green";
@@ -128,49 +129,97 @@
 
         // 🔹 Login
         document.getElementById("loginForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-
-            const usernameInput = document.getElementById("loginName");
-            const passwordInput = document.getElementById("loginPass");
-            const status = document.getElementById("login_status");
-
-            const username = usernameInput.value;
-            const password = passwordInput.value;
-
-            status.textContent = "";
-            showLoading(status);
+            e.preventDefault(); 
+            const username = document.getElementById("loginName").value; 
+            const password = document.getElementById("loginPass").value; 
+            const status = document.getElementById("login_status"); 
+            status.textContent = ""; 
+            showLoading(status); 
 
             try {
-                const res = await fetch("/api/login", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ username, password }),
-                    credentials: "include"
+                const res = await fetch("/api/login", { 
+                    method: "POST", 
+                    headers: { "Content-Type": "application/json" }, 
+                    body: JSON.stringify({ username, password }), 
                 });
+                const data = await res.json(); 
+                console.log("Full response data from server:", data); // ดูข้อมูลทั้งหมดที่ได้รับ
 
-                const data = await res.json();
+                
+                if (data.user && data.token) { // เช็คทั้ง user และ token
+                    status.textContent = "✅ Login successful!"; 
+                    status.style.color = "green"; 
 
-                if (data.user) {
-                    status.textContent = "✅ Login successful!";
-                    status.style.color = "green";
+                    
+                    localStorage.setItem('token', data.token); // บันทึก token ที่ได้รับ
 
-                    usernameInput.value = "";
-                    passwordInput.value = "";
+                    document.getElementById("loginName").value = ""; 
+                    document.getElementById("loginPass").value = ""; 
 
-                    setTimeout(() => {
-                        window.location.href = "/main.html";
+                    setTimeout(() => { 
+                        window.location.href = "/main.html"; 
                     }, 1000);
-                } else {
-                    status.textContent = "❌ " + data.error;
-                    status.style.color = "red";
-                    passwordInput.value = "";
+                // --- เพิ่ม Else If ---
+                } else if (data.user) { // จัดการกรณี server ลืมส่ง token
+                     status.textContent = "❌ Login OK but no token received from server.";
+                     status.style.color = "red";
+                } else { // การจัดการ error เดิม
+                    status.textContent = "❌ " + (data.error || "Login failed"); 
+                    status.style.color = "red"; 
+                    document.getElementById("loginPass").value = ""; 
                 }
-            } catch (err) {
-                console.error(err);
-                status.textContent = "❌ Internal server error";
-                status.style.color = "red";
+            } catch (err) { //
+                 console.error(err); 
+                 status.textContent = "❌ Internal server error"; 
+                 status.style.color = "red"; 
             }
         });
+
+        // 🔹 Google Login 
+        async function handleGoogleLogin(response) {
+
+            const status = document.getElementById("google_status"); 
+            status.textContent = ""; 
+            showLoading(status); 
+
+             if (!response.credential) { 
+                 status.textContent = "❌ No credential received from Google"; 
+                 return; 
+             }
+
+            try {
+                const res = await fetch("/api/google-login", { 
+                    method: "POST", 
+                    headers: { "Content-Type": "application/json" }, 
+                    body: JSON.stringify({ credential: response.credential }), 
+                });
+                const data = await res.json(); 
+
+                // --- เงื่อนไขที่แก้ไข ---
+                if (data.user && data.token) { 
+                    status.textContent = "✅ Login successful!"; //
+                    status.style.color = "green"; //
+
+                    localStorage.setItem('token', data.token); 
+
+                    setTimeout(() => { //
+                        window.location.href = "/main.html"; //
+                    }, 1000);
+
+                 } else if (data.user) { // จัดการกรณี server ลืมส่ง token
+                     status.textContent = "❌ Login OK but no token received from server.";
+                     status.style.color = "red";
+                } else { // การจัดการ error เดิม
+                    status.textContent = "❌ " + (data.error || "Google login failed"); //
+                    status.style.color = "red"; //
+                }
+            } catch (err) { //
+                 // ... บล็อก catch เดิม ...
+                 console.error(err); //
+                 status.textContent = "❌ Internal server error"; //
+                 status.style.color = "red"; //
+            }
+        }
 
         // 🔹 Google Login
         async function handleGoogleLogin(response) {
@@ -192,6 +241,7 @@
                 });
 
                 const data = await res.json();
+                console.log("Full response data from server:", data); // ดูข้อมูลทั้งหมดที่ได้รับ
 
                 if (data.user) {
                     status.textContent = "✅ Login successful!";

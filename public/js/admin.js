@@ -32,29 +32,63 @@ document.addEventListener("DOMContentLoaded", () => {
     // ----------------- SECTION 2: ตรวจ Session  -----------------
 
     fetch("/api/check-session", {
+        // ✅ ส่ง Token ไปใน Header ถูกต้อง
         headers: { 'Authorization': `Bearer ${token}` }
     })
         .then(r => r.json())
         .then(data => {
+            // ⭐️ Debug 1: ดูข้อมูลที่ได้รับกลับมาทั้งหมด
+            console.log("Data from /api/check-session:", data);
+
             if (!data.user) {
-                console.warn("User not logged in.");
-                return; // ไม่ต้อง redirect เพราะนี่คือหน้า main
+                console.warn("User not logged in or session invalid.");
+                return;
             }
 
-            // อัปเดต UI 
+            // (ส่วนอัปเดต Username/Role ที่มุมขวาบน - น่าจะทำงานปกติ)
             const usernameEl = document.getElementById("username");
             const roleEl = document.getElementById("role");
-            if (usernameEl) usernameEl.textContent = data.user.username;
+            if (usernameEl) usernameEl.textContent = data.user.name || data.user.username; // ใช้ name ก่อน ถ้ามี
             if (roleEl) roleEl.textContent = data.user.role;
 
-            // ถ้าเป็น Admin แสดงปุ่ม Admin ทั้งสอง
+            // ⭐️ Debug 2: ตรวจสอบค่า role ที่ได้รับ
+            console.log("User role received:", data.user.role);
+
+            // --- ⬇️ จุดสำคัญคือเงื่อนไขนี้ ⬇️ ---
             if (data.user.role === "admin") {
-                if (openAddShirtBtn) openAddShirtBtn.classList.remove("hidden");
-                if (openAdminOrdersBtn) openAdminOrdersBtn.classList.remove("hidden");
+                // ⭐️ Debug 3: เช็คว่าเข้ามาใน if นี้หรือไม่
+                console.log("User is admin. Attempting to show buttons.");
+
+                // ดึง Element ปุ่ม (ควรจะเจอ ถ้า HTML ถูกต้อง)
+                const addShirtBtn = document.getElementById("openAddShirtBtn");
+                const adminOrdersBtn = document.getElementById("openAdminOrdersBtn");
+
+                // ⭐️ Debug 4: เช็คว่าหาปุ่มเจอไหม
+                console.log("Add Shirt Button Element:", addShirtBtn);
+                console.log("Manage Orders Button Element:", adminOrdersBtn);
+
+                // พยายามลบคลาส 'hidden' ออก
+                if (addShirtBtn) {
+                    addShirtBtn.classList.remove("hidden");
+                    console.log("Removed 'hidden' from Add Shirt button.");
+                } else {
+                    console.error("Could not find Add Shirt button element!");
+                }
+                if (adminOrdersBtn) {
+                    adminOrdersBtn.classList.remove("hidden");
+                    console.log("Removed 'hidden' from Manage Orders button.");
+                } else {
+                    console.error("Could not find Manage Orders button element!");
+                }
+
+            } else {
+                // ⭐️ Debug 5: กรณีที่ไม่ใช่ admin
+                console.log("User is NOT admin. Buttons remain hidden.");
             }
         })
         .catch(err => {
             console.error("Error checking session:", err);
+            // อาจจะเกิดจาก Network error หรือ Server error
         });
 
 
@@ -165,9 +199,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     alert("สินค้านี้ถูกลบเรียบร้อยแล้ว");
 
                     if (typeof loadShirts === "function") {
-                        loadShirts(); // 
+                        loadShirts();  
                     } else {
-                        card.remove(); // ถ้า fun ก็แค่ลบ card
+                        card.remove(); 
                     }
 
                 } catch (err) {
@@ -358,7 +392,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     title: "ยืนยันการจัดส่ง",
                     text: `กรุณากรอกเลขไปรษณีย์สำหรับ Order #${orderId}`,
                     icon: "info",
-                    input: "text", 
+                    input: "text",
                     inputLabel: "Tracking Number",
                     inputPlaceholder: "กรอกเลขพัสดุที่นี่...",
                     showCancelButton: true,
@@ -433,7 +467,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    async function markOrderAsShipped(orderId , trackingNumber) {
+    async function markOrderAsShipped(orderId, trackingNumber) {
         try {
             const res = await fetch(`/api/admin/orders/${orderId}/status`, {
                 method: "PUT",

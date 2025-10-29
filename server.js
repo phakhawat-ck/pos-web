@@ -20,7 +20,7 @@ const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 // Middleware
 app.use(cors({
-  origin: ["https://your-frontend.vercel.app", "http://localhost:3000"],
+  origin: ["https://pos-app-copy.vercel.app", "http://localhost:3000"],
   credentials: true
 }));
 
@@ -61,7 +61,6 @@ function verifyToken(req, res, next) {
 app.get("/", (req, res) => res.sendFile(path.join(process.cwd(), "public/login.html")));
 
 
-
 // Register route
 
 //POST /api/register - ลงทะเบียนผู้ใช้ใหม่
@@ -82,7 +81,6 @@ app.post("/api/register", async (req, res) => {
 });
 
 
-
 // Login
 
 // POST /api/login - เข้าสู่ระบบ
@@ -96,7 +94,10 @@ app.post("/api/login", async (req, res) => {
 
   const token = createToken(user);
   res.cookie("token", token, { httpOnly: true, secure: true, sameSite: "none" });
-  res.json({ user: { id: user.id, username: user.username, name: user.username, role: user.role } });
+  res.json({
+    token: token, // <<<--- เพิ่ม token เข้าไปใน response
+    user: { id: user.id, username: user.username, name: user.name || user.username, role: user.role } //
+  });
 });
 
 // Google Login
@@ -116,7 +117,10 @@ app.post("/api/google-login", async (req, res) => {
 
     const token = createToken(user);
     res.cookie("token", token, { httpOnly: true, secure: true, sameSite: "none" });
-    res.json({ user: { id: user.id, username: user.username, name: user.name, role: user.role } });
+    res.json({
+      token: token, // <<<--- เพิ่ม token เข้าไปใน response
+      user: { id: user.id, username: user.username, name: user.name, role: user.role } //
+    });
   } catch {
     res.status(400).json({ error: "Google login failed" });
   }
@@ -149,8 +153,6 @@ app.post("/api/logout", (req, res) => {
 app.get("/main.html", verifyToken, (req, res) => {
   res.sendFile(path.join(process.cwd(), "public/main.html"));
 });
-
-
 
 
 // ---------- Address Routes ----------
@@ -286,7 +288,6 @@ app.delete("/api/shirts/:id", verifyToken, async (req, res) => {
   }
 });
 
-
 // ---------- Cart & Checkout Routes ----------
 
 // POST /api/add-to-cart - เพิ่มสินค้าในตะกร้า
@@ -414,7 +415,7 @@ app.get("/api/orders/history", verifyToken, async (req, res) => {
       where: {
         userId,
         status: {
-          in: ["success", "shipped" , "waiting_shipment"] // ดึงเฉพาะสถานะเหล่านี้
+          in: ["success", "shipped", "waiting_shipment"] // ดึงเฉพาะสถานะเหล่านี้
         }
       },
       include: { items: { include: { shirt: true } } }, // ดึงของใน order มาด้วย
@@ -536,7 +537,7 @@ app.put("/api/admin/orders/:id/status", verifyToken, async (req, res) => {
   }
 
   const orderId = parseInt(req.params.id);
-  const { status , trackingNumber } = req.body; // รับ status ใหม่จาก front-end
+  const { status, trackingNumber } = req.body; // รับ status ใหม่จาก front-end
 
   if (!status) {
     return res.status(400).json({ error: "Missing 'status' in body" });
@@ -547,7 +548,7 @@ app.put("/api/admin/orders/:id/status", verifyToken, async (req, res) => {
   };
 
   if (trackingNumber !== undefined) {
-      updateData.trackingNumber = trackingNumber;
+    updateData.trackingNumber = trackingNumber;
   }
 
   try {
