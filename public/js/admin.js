@@ -188,7 +188,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const shirtId = target.dataset.id;
                 const card = target.closest(".card");
                 if (!shirtId || !card) return;
-                
+
                 const result = await Swal.fire({
                     title: "ยืนยันการลบสินค้า?",
                     text: "คุณต้องการลบสินค้านี้ออกจากระบบอย่างถาวรใช่หรือไม่?",
@@ -223,7 +223,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 } catch (err) {
                     console.error(err);
-                    showAlert(err.message || "ไม่สามารถลบสินค้านี้ได้", "error");
+                    showAlert("ไม่สามารถลบสินค้านี้ได้ มีสินค้านี้ค้างอยู่ในระบบ", "error");
                 }
             }
 

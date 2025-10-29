@@ -218,7 +218,7 @@ app.post("/api/shirts", verifyToken, async (req, res) => {
     return res.status(400).json({ error: "Missing required fields" });
 
   const newShirt = await prisma.shirt.create({
-    data: { shirt_name, shirt_size,  shirt_price, shirt_image: shirt_image || null , isHidden  },
+    data: { shirt_name, shirt_size,  shirt_price, shirt_image: shirt_image || null , isHidden },
   });
   res.json(newShirt);
 });
