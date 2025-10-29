@@ -4,7 +4,7 @@ window.showAlert = function (message, type = "info") {
 
   const colors = {
     success: "text-green-500",
-    error: "text-red-500",
+    error: "text-red-700",
     warning: "text-yellow-500",
     info: "text-blue-500",
   };

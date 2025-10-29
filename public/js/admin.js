@@ -188,7 +188,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 const shirtId = target.dataset.id;
                 const card = target.closest(".card");
                 if (!shirtId || !card) return;
-                if (!confirm("คุณต้องการลบสินค้านี้หรือไม่?")) return;
+                
+                const result = await Swal.fire({
+                    title: "ยืนยันการลบสินค้า?",
+                    text: "คุณต้องการลบสินค้านี้ออกจากระบบอย่างถาวรใช่หรือไม่?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#d33", 
+                    cancelButtonColor: "#3085d6",
+                    confirmButtonText: "ใช่, ลบเลย!",
+                    cancelButtonText: "ยกเลิก"
+                });
+
+                // ถ้าผู้ใช้ไม่กดยืนยัน ให้หยุดการทำงาน
+                if (!result.isConfirmed) {
+                    return;
+                }
 
                 try {
                     const res = await fetch(`/api/shirts/${shirtId}`, {
@@ -198,17 +213,17 @@ document.addEventListener("DOMContentLoaded", () => {
                     const data = await res.json();
                     if (!res.ok || data.error) throw new Error(data.error || "Failed to delete shirt");
 
-                    alert("สินค้านี้ถูกลบเรียบร้อยแล้ว");
+                    showAlert("สินค้านี้ถูกลบเรียบร้อยแล้ว", "success");
 
                     if (typeof loadShirts === "function") {
-                        loadShirts();  
+                        loadShirts();
                     } else {
-                        card.remove(); 
+                        card.remove();
                     }
 
                 } catch (err) {
                     console.error(err);
-                    alert(err.message || "ไม่สามารถลบสินค้านี้ได้");
+                    showAlert(err.message || "ไม่สามารถลบสินค้านี้ได้", "error");
                 }
             }
 
@@ -424,7 +439,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function showOrderDetailModal(order) {
-    modalDetailTitle.innerHTML = `รายละเอียด Order #${order.id} (ลูกค้า: ${order.user.username || order.user.name})<br>สถานะ: ${order.status}`;
+        modalDetailTitle.innerHTML = `รายละเอียด Order #${order.id} (ลูกค้า: ${order.user.username || order.user.name})<br>สถานะ: ${order.status}`;
 
         const itemsHtml = order.items.map(item => `
             <div class="flex items-center gap-4 border-b pb-2">
