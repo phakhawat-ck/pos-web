@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const token = localStorage.getItem('token');
 
 
-    // ----------------- SECTION 2: ตรวจ Session (ใช้ Logic ของคุณ) -----------------
+    // ----------------- SECTION 2: ตรวจ Session  -----------------
 
     fetch("/api/check-session", {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -41,13 +41,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 return; // ไม่ต้อง redirect เพราะนี่คือหน้า main
             }
 
-            // อัปเดต UI (จากโค้ดของคุณ)
+            // อัปเดต UI 
             const usernameEl = document.getElementById("username");
             const roleEl = document.getElementById("role");
             if (usernameEl) usernameEl.textContent = data.user.username;
             if (roleEl) roleEl.textContent = data.user.role;
 
-            // ถ้ารเป็น Admin: แสดงปุ่ม Admin ทั้งสอง
+            // ถ้าเป็น Admin แสดงปุ่ม Admin ทั้งสอง
             if (data.user.role === "admin") {
                 if (openAddShirtBtn) openAddShirtBtn.classList.remove("hidden");
                 if (openAdminOrdersBtn) openAdminOrdersBtn.classList.remove("hidden");
@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
 
-    // ----------------- SECTION 3: Logic Modal "Add Shirt" (ใช้ Logic ของคุณ) -----------------
+    // ----------------- SECTION 3: Logic Modal "Add Shirt"  -----------------
 
     function openAddShirtModal() {
         if (!addShirtModal) return;
@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (addShirtBackdrop) addShirtBackdrop.addEventListener("click", closeAddShirtModal);
 
 
-    // ----------------- SECTION 4: Submit form (Add / Edit Shirt) (ใช้ Logic ของคุณ) -----------------
+    // ----------------- SECTION 4: Submit form (Add / Edit Shirt)  -----------------
 
     if (addShirtForm) {
         addShirtForm.addEventListener("submit", async (e) => {
@@ -128,7 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 addShirtForm.querySelector("button[type='submit']").textContent = "Add";
                 closeAddShirtModal();
 
-                // โหลดสินค้าใหม่ (ฟังก์ชันนี้ควรอยู่ใน shop.js)
+                // โหลดสินค้าใหม่ จาก loadShirts() shop.js
                 if (typeof loadShirts === "function") {
                     loadShirts();
                 } else {
@@ -141,7 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // ----------------- SECTION 5: Click Event (Edit / Delete Shirt) (ใช้ Logic ของคุณ) -----------------
+    // ----------------- SECTION 5: Click Event (Edit / Delete Shirt)  -----------------
 
     if (container) {
         container.addEventListener("click", async (e) => {
@@ -165,9 +165,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     alert("สินค้านี้ถูกลบเรียบร้อยแล้ว");
 
                     if (typeof loadShirts === "function") {
-                        loadShirts(); // โหลดใหม่ดีกว่า reload
+                        loadShirts(); // 
                     } else {
-                        card.remove(); // ถ้าไม่มีฟังก์ชันก็แค่ลบ card
+                        card.remove(); // ถ้า fun ก็แค่ลบ card
                     }
 
                 } catch (err) {
@@ -227,7 +227,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    // ----------------- SECTION 6: Logic Modal "Manage Orders" (จากโค้ดของผม) -----------------
+    // ----------------- SECTION 6: Logic Modal "Manage Orders"  -----------------
 
     const toggleAdminOrdersModal = (show) => {
         if (!adminOrdersModal) return;
@@ -248,7 +248,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (adminOrdersBackdrop) adminOrdersBackdrop.addEventListener("click", () => toggleAdminOrdersModal(false));
 
 
-    // ----------------- SECTION 7: Logic Modal "Order Detail" (จากโค้ดของผม) -----------------
+    // ----------------- SECTION 7: Logic Modal "Order Detail"  -----------------
 
     const toggleOrderDetailModal = (show) => {
         if (!orderDetailModal) return;
@@ -267,7 +267,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (orderDetailBackdrop) orderDetailBackdrop.addEventListener("click", () => toggleOrderDetailModal(false));
 
 
-    // ----------------- SECTION 8: Logic Data "Orders" (จากโค้ดของผม) -----------------
+    // ----------------- SECTION 8: Logic Data "Orders"  -----------------
 
     async function loadAdminOrders() {
         if (!ordersTbody) return;
@@ -340,7 +340,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         ordersTbody = newTbody;
 
-        //           VVVVV
+
         ordersTbody.addEventListener("click", async (e) => {
             const viewBtn = e.target.closest(".view-btn");
             if (viewBtn) {
@@ -353,24 +353,32 @@ document.addEventListener("DOMContentLoaded", () => {
             if (shipBtn) {
                 const orderId = shipBtn.dataset.id;
 
-                // --- [ นี่คือส่วนที่เปลี่ยน ] ---
-                // 1. เปลี่ยนจาก if(confirm(...)) มาใช้ await Swal.fire(...)
-                const result = await Swal.fire({
-                    title: "ยืนยันการจัดส่ง?",
-                    text: `คุณต้องการยืนยันการจัดส่ง Order #${orderId} หรือไม่?`,
-                    icon: "warning",
+                // ใช้ SweetAlert2 
+                const { value: trackingNumber, isConfirmed } = await Swal.fire({
+                    title: "ยืนยันการจัดส่ง",
+                    text: `กรุณากรอกเลขไปรษณีย์สำหรับ Order #${orderId}`,
+                    icon: "info",
+                    input: "text", 
+                    inputLabel: "Tracking Number",
+                    inputPlaceholder: "กรอกเลขพัสดุที่นี่...",
                     showCancelButton: true,
                     confirmButtonColor: "#3085d6",
                     cancelButtonColor: "#d33",
-                    confirmButtonText: "ใช่, ยืนยันเลย!",
-                    cancelButtonText: "ยกเลิก"
+                    confirmButtonText: "ยืนยันและจัดส่ง",
+                    cancelButtonText: "ยกเลิก",
+
+                    // เพิ่มการตรวจสอบว่าค่าว่างหรือไม่
+                    inputValidator: (value) => {
+                        if (!value || value.trim() === '') {
+                            return "กรุณากรอกเลขไปรษณีย์!";
+                        }
+                    }
                 });
 
-                // 2. เช็กผลลัพธ์จาก .isConfirmed
-                if (result.isConfirmed) {
-                    markOrderAsShipped(orderId);
+                if (isConfirmed && trackingNumber) {
+                    markOrderAsShipped(orderId, trackingNumber);
                 }
-                // --- [ จบส่วนที่เปลี่ยน ] ---
+
             }
         });
     }
@@ -425,7 +433,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    async function markOrderAsShipped(orderId) {
+    async function markOrderAsShipped(orderId , trackingNumber) {
         try {
             const res = await fetch(`/api/admin/orders/${orderId}/status`, {
                 method: "PUT",
@@ -433,7 +441,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     "Content-Type": "application/json",
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ status: "shipped" })
+                body: JSON.stringify({ status: "shipped", trackingNumber: trackingNumber })
             });
 
             if (!res.ok) {

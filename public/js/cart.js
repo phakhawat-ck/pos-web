@@ -94,7 +94,7 @@ async function loadCartData() {
   }
 }
 
-// --- 4. Logic การลบสินค้า (Event Delegation) ---
+// --- การลบสินค้า 
 if (cartDropdownItems) {
   cartDropdownItems.addEventListener("click", async (e) => {
     const btn = e.target.closest(".remove-btn");
@@ -113,7 +113,7 @@ if (cartDropdownItems) {
         throw new Error(errorData.error || "ลบไม่สำเร็จ (Server Error)");
       }
       
-      // ✅ ลบสำเร็จ: โหลดตะกร้าใหม่ทั้งหมด
+      // ลบสำเร็จ  โหลดตะกร้าใหม่ทั้งหมด
       await loadCartData(); 
       
     } catch (err) {

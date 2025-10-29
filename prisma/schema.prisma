@@ -40,16 +40,16 @@ model Shirt {
   shirt_price Float
   shirt_image String?
   orderItems  OrderItem[]
-  isHidden    Boolean  @default(false)
 }
 
 model Order {
-  id        Int         @id @default(autoincrement())
-  userId    Int
-  status    String      @default("pending")
-  createdAt DateTime    @default(now())
-  user      User        @relation(fields: [userId], references: [id])
-  items     OrderItem[]
+  id             Int         @id @default(autoincrement())
+  userId         Int
+  status         String      @default("pending")
+  createdAt      DateTime    @default(now())
+  trackingNumber String?
+  user           User        @relation(fields: [userId], references: [id])
+  items          OrderItem[]
 }
 
 model OrderItem {

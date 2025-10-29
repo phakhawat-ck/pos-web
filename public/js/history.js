@@ -61,16 +61,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    // --- Function to render orders (Adapted from your history.html) ---
+    // 
     const renderOrders = (orders) => {
         historyContent.innerHTML = ''; // ล้าง loading ออก
 
         orders.forEach(order => {
             const orderCard = document.createElement("div");
-            // ใช้ class จาก history.html ของคุณ (และเพิ่ม mb-4 เพื่อเว้นระยะห่างใน modal)
+
             orderCard.className = "bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200 mb-4";
 
-            // 1. คำนวณราคารวม (จาก logic ของคุณ)
+            // คำนวณราคารวม 
             const orderTotal = order.items.reduce((sum, item) => {
                 return sum + (item.price * item.quantity);
             }, 0);
@@ -118,11 +118,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 statusClass = 'bg-gray-100 text-gray-800';
             }
 
+            let trackingHtml = '';
+            if (order.status === 'shipped' && order.trackingNumber) {
+                trackingHtml = `
+                    <p class="text-sm text-gray-500 mt-1">
+                        Tracking: <span class="font-medium text-blue-600 font-mono">#${order.trackingNumber}</span>
+                    </p>
+                `;
+            }
+
+            // 5. สร้างโครงสร้างการ์ดคำสั่งซื้อ
             orderCard.innerHTML = `
             <div class="bg-gray-50 p-4 border-b border-gray-200 flex justify-between items-center">
                 <div>
                     <h2 class="text-lg font-bold text-gray-800">Order #${order.id}</h2> 
-                    <p class="text-sm text-gray-500">วันที่: ${orderDate}</p>
+                    <p class="text-sm text-gray-500">วันที่: ${orderDate} ${trackingHtml}</p>
                 </div>
                 <span class="capitalize ${statusClass} text-xs font-medium px-2.5 py-0.5 rounded-full">${order.status}</span>
             </div>

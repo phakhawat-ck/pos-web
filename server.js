@@ -505,7 +505,6 @@ app.get("/api/admin/orders", verifyToken, async (req, res) => {
         status: {
           not: "pending"
         }
-        // คุณอาจจะแก้เป็น status: "success" ถ้าต้องการเฉพาะที่ยังไม่ส่ง
       },
       include: {
         // 3. ดึงข้อมูล user ที่สั่ง และ item+shirt ในออเดอร์
@@ -529,22 +528,32 @@ app.get("/api/admin/orders", verifyToken, async (req, res) => {
 
 // PUT /api/admin/orders/:id/status - (สำหรับ Admin) อัปเดตสถานะ Order
 app.put("/api/admin/orders/:id/status", verifyToken, async (req, res) => {
+
+  console.log("BODY ที่ได้รับจาก Client:", req.body);
   // 1. ตรวจสอบว่าเป็น Admin
   if (req.user.role !== "admin") {
     return res.status(403).json({ error: "Forbidden: Admin access only" });
   }
 
   const orderId = parseInt(req.params.id);
-  const { status } = req.body; // รับ status ใหม่จาก front-end
+  const { status , trackingNumber } = req.body; // รับ status ใหม่จาก front-end
 
   if (!status) {
     return res.status(400).json({ error: "Missing 'status' in body" });
   }
 
+  const updateData = {
+    status: status
+  };
+
+  if (trackingNumber !== undefined) {
+      updateData.trackingNumber = trackingNumber;
+  }
+
   try {
     const updatedOrder = await prisma.order.update({
       where: { id: orderId },
-      data: { status: status } // เช่น "shipped", "completed", "cancelled"
+      data: updateData
     });
     res.json(updatedOrder);
   } catch (err) {
