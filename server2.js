@@ -1,5 +1,5 @@
 // ===========================================
-// server.js (ฉบับแปลงเป็น Raw SQL + pg)
+// server.js 
 // ===========================================
 
 import express from "express";
@@ -862,14 +862,14 @@ app.delete("/api/cart/:id", verifyToken, async (req, res) => {
 
 
 // ==================================
-// ✅ Admin Routes (แปลงแล้ว)
+// ✅ Admin Routes 
 // ==================================
 
 /**
  * GET /api/admin/orders - (Admin) ดึง Order ทั้งหมด (ที่ไม่ใช่ pending)
  * พร้อมข้อมูล User และ Items (รวม Shirt) โดยใช้ JSON Aggregation
  */
-// GET /api/admin/orders - (สำหรับ Admin) ดึง Order (ฉบับ N+1 Query - ง่ายสุด แต่อาจช้า)
+// GET /api/admin/orders - (สำหรับ Admin) ดึง Order (ฉบับ N+1 Query )
 app.get("/api/admin/orders", verifyToken, async (req, res) => {
     // --- Admin Check (เหมือนเดิม) ---
     if (req.user.role !== "admin") {
@@ -1054,7 +1054,7 @@ app.get("/api/admin/address/:userId", verifyToken, async (req, res) => {
 });
 
 
-// Start server (เหมือนเดิม)
+// Start server 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
     console.log(`✅ Server running on port ${PORT}`) //

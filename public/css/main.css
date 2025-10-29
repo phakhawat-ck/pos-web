@@ -2,6 +2,9 @@
 *{
     font-family: 'Outfit', 'Noto Sans Thai', sans-serif;
 }
+html{
+    scroll-behavior: smooth;
+}
 
 /* ปุ่มลบในตะกร้า */
 .remove-btn {

@@ -418,7 +418,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function showOrderDetailModal(order) {
-        modalDetailTitle.textContent = `รายละเอียด Order #${order.id} (ลูกค้า: ${order.user.username || order.user.name})`;
+    modalDetailTitle.innerHTML = `รายละเอียด Order #${order.id} (ลูกค้า: ${order.user.username || order.user.name})<br>สถานะ: ${order.status}`;
 
         const itemsHtml = order.items.map(item => `
             <div class="flex items-center gap-4 border-b pb-2">
@@ -434,7 +434,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         let addressHtml = `<p class="text-gray-500">กำลังโหลดที่อยู่...</p>`;
         modalDetailBody.innerHTML = `<div><h4 class="font-bold text-lg mb-2">รายการสินค้า</h4>${itemsHtml}</div>
-                                 <div><h4 class="font-bold text-lg mb-2">ข้อมูลจัดส่ง</h4><div id="modal-address">${addressHtml}</div></div>`;
+                                 <div><h4 class="font-bold text-lg mb-2">ข้อมูลจัดส่ง</h4><div id="modal-address">${addressHtml}</div><hr>Tracking: ${order.trackingNumber || 'N/A'}</div>`;
 
         toggleOrderDetailModal(true);
 

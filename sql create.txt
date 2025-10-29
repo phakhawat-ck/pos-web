@@ -63,7 +63,10 @@ CREATE TABLE "OrderItem" (
     CONSTRAINT "OrderItem_shirtId_fkey" FOREIGN KEY ("shirtId") REFERENCES "Shirt"("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
--- (Optional) สร้าง Index เพิ่มเติมเพื่อประสิทธิภาพ (Prisma อาจสร้างให้บางส่วน)
+
+
+
+-- (Optional) สร้าง Index เพิ่มเติมเพื่อประสิทธิภาพ 
 CREATE INDEX "Order_userId_idx" ON "Order"("userId");
 CREATE INDEX "OrderItem_orderId_idx" ON "OrderItem"("orderId");
 CREATE INDEX "OrderItem_shirtId_idx" ON "OrderItem"("shirtId");
