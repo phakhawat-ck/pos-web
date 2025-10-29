@@ -213,12 +213,12 @@ app.post("/api/shirts", verifyToken, async (req, res) => {
   const user = req.user;
   if (user.role !== "admin") return res.status(403).json({ error: "Forbidden: admin only" });
 
-  const { shirt_name, shirt_size, shirt_color, shirt_price, shirt_image } = req.body;
+  const { shirt_name, shirt_size,  shirt_price, shirt_image, isHidden } = req.body;
   if (!shirt_name || !shirt_size || !shirt_price)
     return res.status(400).json({ error: "Missing required fields" });
 
   const newShirt = await prisma.shirt.create({
-    data: { shirt_name, shirt_size, shirt_color, shirt_price, shirt_image: shirt_image || null },
+    data: { shirt_name, shirt_size,  shirt_price, shirt_image: shirt_image || null , isHidden  },
   });
   res.json(newShirt);
 });
@@ -248,14 +248,14 @@ app.put("/api/shirts/:id", verifyToken, async (req, res) => { // 1. เพิ่
   }
 
   const id = parseInt(req.params.id);
-  const { shirt_name, shirt_size, shirt_price, shirt_image } = req.body;
+  const { shirt_name, shirt_size, shirt_price, shirt_image, isHidden } = req.body;
 
   if (!id) return res.status(400).json({ error: "Missing id" });
 
   try {
     const updatedShirt = await prisma.shirt.update({
       where: { id },
-      data: { shirt_name, shirt_size, shirt_price, shirt_image },
+      data: { shirt_name, shirt_size, shirt_price, shirt_image , isHidden },
     });
     res.json(updatedShirt);
   } catch (err) {

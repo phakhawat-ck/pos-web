@@ -129,6 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (addShirtForm) {
         addShirtForm.addEventListener("submit", async (e) => {
             e.preventDefault();
+            const isHidden = addShirtForm.querySelector("#shirtIsHidden").checked;
             const selectedSizes = Array.from(addShirtForm.querySelectorAll("input[name='shirtSize']:checked")).map(i => i.value);
             const customSize = addShirtForm.querySelector("#shirtSizeCustom").value.trim();
             if (customSize) selectedSizes.push(customSize);
@@ -137,7 +138,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 shirt_name: addShirtForm.querySelector("#shirtName").value,
                 shirt_size: selectedSizes.join(","),
                 shirt_price: parseFloat(addShirtForm.querySelector("#shirtPrice").value),
-                shirt_image: addShirtForm.querySelector("#shirtImage").value || null
+                shirt_image: addShirtForm.querySelector("#shirtImage").value || null,
+                isHidden: isHidden
             };
 
             const editId = addShirtForm.dataset.editId;
@@ -249,6 +251,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (customSizes.length) {
                             addShirtForm.querySelector("#shirtSizeCustom").value = customSizes.join(", ");
                         }
+                    }
+                    const isHiddenCheckbox = addShirtForm.querySelector("#shirtIsHidden");
+                    if (isHiddenCheckbox) {
+                        isHiddenCheckbox.checked = shirt.isHidden || false; // .checked = true/false
                     }
 
                     openAddShirtModal(); // เปิด modal

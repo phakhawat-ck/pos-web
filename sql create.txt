@@ -34,6 +34,7 @@ CREATE TABLE "Shirt" (
     "shirt_size" TEXT NOT NULL, -- เก็บขนาดเป็น string เดียวกัน (เช่น "S,M,L")
     "shirt_price" DOUBLE PRECISION NOT NULL, -- Float ใน Prisma คือ DOUBLE PRECISION ใน SQL
     "shirt_image" TEXT
+    "isHidden" BOOLEAN NOT NULL DEFAULT false
 );
 
 -- ตาราง Order

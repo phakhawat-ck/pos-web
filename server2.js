@@ -407,7 +407,7 @@ app.post("/api/shirts", verifyToken, async (req, res) => {
     if (req.user.role !== "admin") return res.status(403).json({ error: "Forbidden: admin only" });
 
     // ดึงข้อมูลจาก body
-    const { shirt_name, shirt_size, shirt_price, shirt_image } = req.body;
+    const { shirt_name, shirt_size, shirt_price, shirt_image , isHidden = false} = req.body;
 
     // --- Input Validation ---
     if (!shirt_name || !shirt_size || shirt_price === undefined || shirt_price === null) // เช็ค price ให้ดีขึ้น
@@ -420,11 +420,11 @@ app.post("/api/shirts", verifyToken, async (req, res) => {
     try {
         // --- สร้าง Shirt ใหม่ ---
         const sql = `
-      INSERT INTO "Shirt" (shirt_name, shirt_size, shirt_price, shirt_image)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO "Shirt" (shirt_name, shirt_size, shirt_price, shirt_image, "isHidden")
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING *
     `;
-        const result = await pool.query(sql, [shirt_name, shirt_size, parseFloat(shirt_price), shirt_image || null]);
+        const result = await pool.query(sql, [shirt_name, shirt_size, parseFloat(shirt_price), shirt_image || null, Boolean(isHidden)]);
         const newShirt = result.rows[0];
 
         res.status(201).json(newShirt); // ส่ง 201 Created
@@ -468,7 +468,7 @@ app.put("/api/shirts/:id", verifyToken, async (req, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid shirt ID" });
 
-    const { shirt_name, shirt_size, shirt_price, shirt_image } = req.body; //
+    const { shirt_name, shirt_size, shirt_price, shirt_image, isHidden} = req.body; //
 
     // --- Input Validation  ---
     if (!shirt_name || !shirt_size || shirt_price === undefined || shirt_price === null)
@@ -481,8 +481,8 @@ app.put("/api/shirts/:id", verifyToken, async (req, res) => {
         // --- อัปเดต Shirt ---
         const sql = `
       UPDATE "Shirt"
-      SET shirt_name = $1, shirt_size = $2, shirt_price = $3, shirt_image = $4
-      WHERE id = $5
+      SET shirt_name = $1, shirt_size = $2, shirt_price = $3, shirt_image = $4, "isHidden" = $5
+      WHERE id = $6
       RETURNING *
     `; //
         const result = await pool.query(sql, [
@@ -490,6 +490,7 @@ app.put("/api/shirts/:id", verifyToken, async (req, res) => {
             shirt_size,
             parseFloat(shirt_price),
             shirt_image || null, // ถ้า img เป็น null ให้ใส่ null ลง DB
+            Boolean(isHidden),
             id
         ]);
         const updatedShirt = result.rows[0];
