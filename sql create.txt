@@ -71,3 +71,5 @@ CREATE TABLE "OrderItem" (
 CREATE INDEX "Order_userId_idx" ON "Order"("userId");
 CREATE INDEX "OrderItem_orderId_idx" ON "OrderItem"("orderId");
 CREATE INDEX "OrderItem_shirtId_idx" ON "OrderItem"("shirtId");
+
+https://docs.google.com/spreadsheets/d/1vEj7EWGSIQfRkl9axMdd9Xprd-4gUOCPMY803WFDM1k/edit?gid=1245092525#gid=1245092525

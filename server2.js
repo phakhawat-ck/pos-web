@@ -550,7 +550,7 @@ app.delete("/api/shirts/:id", verifyToken, async (req, res) => {
 
 
 // ==============================================
-// ✅ Cart & Checkout Routes (แปลงแล้ว - ใช้ Transaction)
+// ✅ Cart & Checkout Routes 
 // ==============================================
 
 /**
